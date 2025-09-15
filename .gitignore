@@ -127,3 +127,6 @@ celerybeat.pid
 .mypy_cache/
 .dmypy.json
 dmypy.json
+ 
+# Local helper scripts
+run.sh
