@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCB Blockly Code Generation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/atom-one-light.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <h1><i class="fas fa-code"></i> TCB Blockly Code Generation</h1>
+
+    <!-- Camera and Upload options -->
+    <div id="image-options">
+        <!-- <p>Capture Image or Upload Image:</p> -->
+        <div class="camera-stack">
+            <video id="camera-feed" autoplay></video>
+            <button type="button" id="take-picture-btn" onclick="takePicture()" class="generate" style="display:none; margin-top:10px;"><i class="fas fa-bolt"></i> Take Picture</button>
+        </div>
+        <button type="button" id="open-camera-btn" onclick="captureImage()"><i class="fas fa-camera"></i>Open Camera</button>
+        <p class="or-text">OR</p>
+        <label for="image-input" class="upload-label"><i class="fas fa-upload"></i> Upload Image</label>
+        <input type="file" name="file" accept=".png, .jpg, .jpeg, .gif" id="image-input" onchange="uploadImage()" style="display: none;">
+    </div>
+
+    <!-- Display the captured or uploaded image -->
+    <img src="" alt="Uploaded Image" id="uploaded-image">
+
+    <!-- Generate Blockly Code -->
+    <button type="button" onclick="generateCode()" class="generate"><i class="fa-solid fa-wand-magic"></i> Generate Blockly Code with this Photo!</button>
+
+    <!-- Container for code box and inline encouragement -->
+    <div class="code-and-encouragement-container">
+        <!-- Code box for displaying code content -->
+        <div id="code-box" style="margin-top: 20px;">
+            <div class="modal-hero" style="background: linear-gradient(135deg, #9400D3, #007BFF);">
+                <div class="badge" style="color: #9400D3;"><i class="fas fa-code"></i></div>
+            </div>
+            <div class="modal-body" style="text-align: left; padding: 20px;">
+                <h2 style="margin: 0 0 15px 0; color: #9400D3;">Generated Code</h2>
+                <pre><code id="content" class="javascript hljs">"Your code will appear here (press Generate Code button)."</code></pre>
+                <div class="button-group">
+                    <button id="download-button" onclick="downloadCode()"><i class="fas fa-download"></i> Download Code</button>
+                    <button id="copy-button" onclick="copyCode()"><i class="fas fa-copy"></i> Copy Code to Clipboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inline encouragement card -->
+        <div id="inline-encouragement" class="inline-encouragement hidden">
+            <div class="modal-card" id="inline-encouragement-card">
+                <button class="close-btn" aria-label="Close" onclick="closeInlineEncouragement()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-hero" style="background: linear-gradient(135deg, #4CAF50, #0056B3);">
+                    <div class="badge" style="color: #4CAF50;"><i class="fa-solid fa-face-smile"></i></div>
+                </div>
+                <div class="modal-body" style="text-align:left;">
+                    <h2>You're doing great!</h2>
+                    <p id="inline-encouragement-text">Analyzing your code...</p>
+                    <div class="modal-actions" style="justify-content:flex-end;">
+                        <button class="secondary" onclick="closeInlineEncouragement()"><i class="fas fa-check"></i> Got it</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engaging suggestion side panel (non-blocking) -->
+
+    <!-- Right-side idea/suggestion panel -->
+    <div id="suggestion-panel" class="side-panel hidden">
+        <div class="modal-card" id="suggestion-card">
+            <button class="close-btn" aria-label="Close" onclick="closeSuggestion()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-hero">
+                <div class="badge"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            </div>
+            <div class="modal-body">
+                <h2>Great job, coder!</h2>
+                <p id="suggestion-text">Your AI helper will share a fun idea here soon. Try adding new blocks and make it yours!</p>
+                <div class="modal-actions">
+                    <button class="primary" onclick="closeSuggestion()"><i class="fas fa-thumbs-up"></i> Awesome!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy notice modal (centered, blocking) -->
+    <div id="copy-overlay" class="overlay hidden">
+        <div class="modal-card" id="copy-card">
+            <div class="modal-hero">
+                <div class="badge"><i class="fas fa-clipboard-check"></i></div>
+            </div>
+            <div class="modal-body">
+                <h2>Copied to Clipboard!</h2>
+                <p>Your code is ready. Open MakeCode and paste it into JavaScript.</p>
+                <div class="modal-actions">
+                    <a class="primary" href="https://makecode.microbit.org/" target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-arrow-right"></i><span style="margin-left:6px;">Go to MakeCode</span>
+                    </a>
+                    <button class="secondary" onclick="closeCopyNotice()"><i class="fas fa-times"></i><span style="margin-left:6px;">Close</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

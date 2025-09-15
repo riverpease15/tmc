@@ -1,0 +1,646 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center vertically */
+  background-color: #ffffff;
+  color: #333333;
+  font-family: "Sour Gummy", sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+  overflow-y: auto; /* Allow vertical scrolling */
+  padding: 40px 20px; /* Add more top/bottom padding for breathing room */
+  min-height: 100vh; /* Fill viewport height for vertical centering */
+}
+
+/* Suggestion modal styles */
+.side-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.side-panel.hidden { display: none; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.overlay.hidden { display: none; }
+
+.modal-card {
+  width: min(90vw, 540px);
+  background: #ffffff;
+  border: 3px solid #007BFF;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transform-origin: center;
+}
+
+
+.pop-in { animation: popIn 500ms cubic-bezier(.2, .7, .3, 1.2); }
+.slide-in-right { animation: slideInRight 450ms cubic-bezier(.2, .7, .3, 1.2); }
+
+/* Inline encouragement card - appears next to code box */
+.inline-encouragement {
+  position: absolute;
+  left: 50%;
+  transform: translateX(50px);
+  width: 35%;
+  max-width: 500px;
+  opacity: 0;
+  transition: all 0.6s cubic-bezier(.25, .46, .45, .94);
+  display: flex;
+  flex-direction: column;
+}
+
+.inline-encouragement.visible {
+  opacity: 1;
+  transform: translateX(20%);
+}
+
+.inline-encouragement.hidden { 
+  display: none; 
+}
+
+.inline-encouragement.slide-out-right {
+  animation: slideOutRightInline 0.6s cubic-bezier(.25, .46, .45, .94) forwards;
+}
+
+/* Ensure the inline encouragement card matches the modal card styling */
+#inline-encouragement-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+.slide-out-right { animation: slideOutRight 380ms cubic-bezier(.2, .7, .3, 1.2) forwards; }
+
+@keyframes popIn {
+  0% { transform: scale(.85) rotate(-2deg); opacity: 0; }
+  60% { transform: scale(1.03) rotate(1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(20px); opacity: 0; }
+}
+
+@keyframes slideOutRightInline {
+  0% { transform: translateX(20%); opacity: 1; }
+  100% { transform: translateX(100px); opacity: 0; }
+}
+
+
+.modal-hero {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(135deg, #007BFF, #0056B3);
+  display: grid;
+  place-items: center;
+}
+
+.badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: #007BFF;
+  font-size: 28px;
+  border: 3px solid #ffffffaa;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+/* Smaller hero and badge for code box */
+#code-box .modal-hero {
+  height: 80px;
+}
+
+#code-box .badge {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  border: 2px solid #ffffffaa;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Match encouragement card header to code box dimensions */
+#inline-encouragement-card .modal-hero {
+  height: 80px;
+}
+
+#inline-encouragement-card .badge {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  border: 2px solid #ffffffaa;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: #4CAF50;
+}
+
+
+.modal-body { padding: 20px 20px 24px; text-align: center; }
+.modal-body h2 { margin: 10px 0 8px; color: #007BFF; }
+.modal-body p { color: #333; }
+
+/* More compact modal body for code box */
+#code-box .modal-body { 
+  padding: 15px 15px 20px; 
+  text-align: left; 
+}
+
+#code-box .modal-body h2 { 
+  margin: 0 0 12px 0; 
+  color: #007BFF; 
+  font-size: 1.2em;
+}
+
+/* Match encouragement card body to code box styling */
+#inline-encouragement-card .modal-body { 
+  padding: 15px 15px 20px; 
+  text-align: center; 
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+#inline-encouragement-card .modal-body h2 { 
+  margin: 0 0 12px 0; 
+  color: #4CAF50; 
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+/* Improve encouragement text styling */
+#inline-encouragement-card .modal-body p { 
+  color: #333; 
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+#inline-encouragement-card .modal-body h3 { 
+  color: #333; 
+  font-weight: 400;
+  font-size: 1.1em;
+  margin: 0 0 8px 0;
+}
+
+.modal-actions { display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+.modal-actions .primary { background: #007BFF; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; }
+.modal-actions .primary:hover { background: #0056B3; }
+.modal-actions .secondary { background: #eee; color: #333; padding: 10px 16px; border-radius: 6px; border: 1px solid #ddd; display: inline-flex; align-items: center; }
+.modal-actions .secondary:hover { background: #e2e2e2; }
+
+.close-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #ffffff;
+  color: #333;
+  border: 2px solid #eee;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.close-btn:hover { background: #f3f3f3; }
+
+h1 {
+  margin-bottom: 36px; /* Increased spacing under title */
+  color: #007BFF;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 i {
+  margin-right: 10px;
+}
+
+#image-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px; /* space between controls */
+  margin-bottom: 28px; /* more air between controls and next section */
+}
+
+.camera-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#image-options p {
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+button, .upload-label {
+  background-color: #007BFF;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-left: 12px;
+  cursor: pointer;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+}
+
+/* Open Camera Button - Blue */
+#open-camera-btn {
+  background-color: #007BFF;
+  color: #ffffff;
+}
+
+#open-camera-btn:hover {
+  background-color: #0056B3;
+}
+
+/* Take Picture Button - Red */
+#take-picture-btn {
+  background-color: #D32F2F;
+  color: #ffffff;
+}
+
+#take-picture-btn:hover {
+  background-color: #B71C1C;
+}
+
+/* Upload Image Button - Blue */
+.upload-label {
+  background-color: #007BFF;
+  color: #ffffff;
+}
+
+.upload-label:hover {
+  background-color: #0056B3;
+}
+
+/* Target buttons with the class 'generate' */
+button.generate {
+  margin-top: 40px;
+  background-color: #9400D3;
+  color: #ffffff;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+/* Additional styling for buttons with icons */
+button.generate i {
+  margin-right: 5px;
+}
+
+/* Hover effect for buttons with the class 'generate' */
+button.generate:hover {
+  background-color: #7B1FA2;
+}
+
+button i, .upload-label i {
+  margin-right: 5px;
+}
+
+button:hover, .upload-label:hover {
+  background-color: #0056b3;
+}
+
+#camera-feed, #uploaded-image {
+  max-width: 80%;
+  max-height: 300px;
+  margin-top: 24px; /* slightly more space from controls */
+  border-radius: 5px;
+  display: none;
+  border: 2px solid #007BFF;
+}
+
+.fade-in { animation: fadeIn .8s ease-out; }
+.fade-out { animation: fadeOut .7s ease-in forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(10px) scale(.98); }
+}
+
+.pulse { animation: pulse .6s ease-in-out; }
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pop-bounce { animation: popBounce .6s cubic-bezier(.2,.7,.3,1.2); }
+.pop-out { animation: popOut .5s cubic-bezier(.2,.7,.3,1.2) forwards; }
+@keyframes popBounce {
+  0% { transform: scale(.90); opacity: 0; }
+  60% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes popOut {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(.9); opacity: 0; }
+}
+
+/* Container for code box and encouragement side by side */
+.code-and-encouragement-container {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  margin: 40px auto 0 auto; /* Add top margin to move both popups down */
+  min-height: 500px; /* Ensure container has proper height for vertical centering */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Ensure both cards start at exactly the same vertical position */
+#code-box {
+  margin-top: 32px;
+}
+
+.inline-encouragement {
+  margin-top: 20px;
+}
+
+#code-box {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 900px;
+  background-color: #ffffff;
+  padding: 0;
+  border-radius: 16px;
+  text-align: left;
+  border: 3px solid #007BFF;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  transition: transform 0.6s cubic-bezier(.25, .46, .45, .94), width 0.6s cubic-bezier(.25, .46, .45, .94), max-width 0.6s cubic-bezier(.25, .46, .45, .94);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform-origin: center;
+}
+
+/* When encouragement is shown, code box moves left */
+#code-box.with-encouragement {
+  width: 45%;
+  max-width: 700px;
+  transform: translateX(-95%);
+}
+
+pre {
+  background-color: #f8f8f8;
+  color: #333333;
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid #dddddd;
+  white-space: pre-wrap; /* Allow code to wrap */
+  word-wrap: break-word; /* Ensure words break correctly */
+  margin: 0;
+}
+
+/* More compact pre element for code box */
+#code-box pre {
+  padding: 12px;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+pre code {
+  font-size: 1em;
+  color: #333333 !important;
+}
+
+/* Force all code text to be black, overriding syntax highlighting */
+#content, #content * {
+  color: #333333 !important;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px; /* extra space from code */
+}
+
+/* More compact button group for code box */
+#code-box .button-group {
+  margin-top: 12px;
+}
+
+#code-box .button-group button {
+  padding: 8px 16px;
+  font-size: 0.9em;
+}
+
+/* Style encouragement button to match code box buttons but in green */
+#inline-encouragement-card .modal-actions {
+  justify-content: flex-end;
+  margin-top: auto; /* Push button to bottom */
+  padding-top: 12px;
+}
+
+#inline-encouragement-card .modal-actions .secondary {
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  margin-left: 0;
+  transition: background-color 0.3s ease;
+}
+
+#inline-encouragement-card .modal-actions .secondary:hover {
+  background-color: #007BFF;
+}
+
+#inline-encouragement-card .modal-actions .secondary i {
+  margin-right: 5px;
+}
+
+.button-group button {
+  margin-left: 10px;
+  background-color: #007BFF;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.button-group button i {
+  margin-right: 5px;
+}
+
+/* Generated Code buttons - Purple hover */
+#code-box .button-group button:hover {
+  background-color: #9400D3;
+}
+
+#image-options .or-text {
+  margin: 0 15px; /* Equal margin on both sides of "OR" */
+  font-weight: bold;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #000; }
+}
+
+#content.typing {
+  overflow: hidden; /* Ensures the content is hidden until it's revealed by the animation */
+  border-right: .15em solid #333; /* Adds a caret at the end */
+  white-space: nowrap; /* Prevents wrapping */
+  animation: typing 3.5s steps(10, end), blink-caret .75s step-end infinite;
+  width: 0; /* Start with no width */
+}
+
+/* Loading dots animation for AI responses */
+.loading-dots {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.loading-dots span {
+  animation: loadingDots 1.4s infinite ease-in-out both;
+  display: inline-block;
+  font-size: 1.2em;
+  color: #4CAF50;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes loadingDots {
+  0%, 80%, 100% { 
+    transform: scale(0);
+    opacity: 0.5;
+  } 
+  40% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Block Color Scheme Utility Classes */
+.color-red { color: #D32F2F; }
+.color-orange { color: #FFAD4D; }
+.color-green { color: #4CAF50; }
+.color-blue { color: #007BFF; }
+.color-dark-blue { color: #0056B3; }
+.color-purple { color: #9400D3; }
+
+.bg-red { background-color: #D32F2F; color: #ffffff; }
+.bg-orange { background-color: #FFAD4D; color: #ffffff; }
+.bg-green { background-color: #4CAF50; color: #ffffff; }
+.bg-blue { background-color: #007BFF; color: #ffffff; }
+.bg-dark-blue { background-color: #0056B3; color: #ffffff; }
+.bg-purple { background-color: #9400D3; color: #ffffff; }
+
+/* Suggestion/Idea popup styling - Red and Orange theme */
+#suggestion-card .modal-hero {
+  background: linear-gradient(135deg, #D32F2F, #FFAD4D);
+}
+
+#suggestion-card .badge {
+  color: #D32F2F;
+}
+
+#suggestion-card .modal-body h2 {
+  color: #D32F2F;
+}
+
+#suggestion-card .modal-actions .primary {
+  background-color: #FFAD4D;
+  color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+#suggestion-card .modal-actions .primary:hover {
+  background-color: #D32F2F;
+}
+
+/* Sour Gummy Font Classes */
+.sour-gummy-regular {
+  font-family: "Sour Gummy", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+.sour-gummy-bold {
+  font-family: "Sour Gummy", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+/* Apply Sour Gummy font to specific elements, excluding icons */
+h1, h2, h3, h4, h5, h6, p, span, div, button, input, label, .modal-body, .modal-actions, .button-group {
+  font-family: "Sour Gummy", sans-serif !important;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+}
+
+/* Ensure icons keep their Font Awesome fonts */
+i, .fas, .fa, .fa-solid, .fa-brands, .fa-regular, [class*="fa-"], [class*="fas"], [class*="far"], [class*="fab"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;
+}
+
+/* Code elements should use monospace font for readability */
+.hljs, .hljs *, pre code, #content, #content *, pre, code {
+  font-family: "Courier New", "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+}

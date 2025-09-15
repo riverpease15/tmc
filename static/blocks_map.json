@@ -1,0 +1,163 @@
+{
+  "synonyms": {
+    "PO": "P0",
+    "РО": "P0",
+    "O": ".",
+    "0": ".",
+    "1": "#",
+    "I": "#",
+    "|": "#"
+  },
+  "icons": {
+    "HEART": { "value": "IconNames.Heart", "image": "placeholder_heart.png" },
+    "SMALLHEART": { "value": "IconNames.SmallHeart", "image": "placeholder_smallheart.png" },
+    "YES": { "value": "IconNames.Yes", "image": "placeholder_yes.png" },
+    "NO": { "value": "IconNames.No", "image": "placeholder_no.png" },
+    "HAPPY": { "value": "IconNames.Happy", "image": "placeholder_happy.png" },
+    "SAD": { "value": "IconNames.Sad", "image": "placeholder_sad.png" },
+    "CONFUSED": { "value": "IconNames.Confused", "image": "placeholder_confused.png" },
+    "ANGRY": { "value": "IconNames.Angry", "image": "placeholder_angry.png" },
+    "ASLEEP": { "value": "IconNames.Asleep", "image": "placeholder_asleep.png" },
+    "SURPRISED": { "value": "IconNames.Surprised", "image": "placeholder_surprised.png" },
+    "SILLY": { "value": "IconNames.Silly", "image": "placeholder_silly.png" },
+    "FABULOUS": { "value": "IconNames.Fabulous", "image": "placeholder_fabulous.png" },
+    "SQUARE": { "value": "IconNames.Square", "image": "placeholder_square.png" },
+    "TRIANGLE": { "value": "IconNames.Triangle", "image": "placeholder_triangle.png" },
+    "DIAMOND": { "value": "IconNames.Diamond", "image": "placeholder_diamond.png" },
+    "DUCK": { "value": "IconNames.Duck", "image": "placeholder_duck.png" },
+    "HOUSE": { "value": "IconNames.House", "image": "placeholder_house.png" },
+    "GHOST": { "value": "IconNames.Ghost", "image": "placeholder_ghost.png" },
+    "SWORD": { "value": "IconNames.Sword", "image": "placeholder_sword.png" },
+    "TARGET": { "value": "IconNames.Target", "image": "placeholder_target.png" }
+  },
+  "sounds": {
+    "DING": { "value": "soundExpression.ding", "image": "placeholder_ding.png" },
+    "CHIME": { "value": "soundExpression.chime", "image": "placeholder_chime.png" },
+    "GIGGLE": { "value": "soundExpression.giggle", "image": "placeholder_giggle.png" },
+    "HAPPY": { "value": "soundExpression.happy", "image": "placeholder_happy.png" },
+    "HELLO": { "value": "soundExpression.hello", "image": "placeholder_hello.png" },
+    "MYSTERIOUS": { "value": "soundExpression.mysterious", "image": "placeholder_mysterious.png" },
+    "SAD": { "value": "soundExpression.sad", "image": "placeholder_sad.png" },
+    "SLIDE": { "value": "soundExpression.slide", "image": "placeholder_slide.png" },
+    "SOARING": { "value": "soundExpression.soaring", "image": "placeholder_soaring.png" },
+    "SPRING": { "value": "soundExpression.spring", "image": "placeholder_spring.png" },
+    "TWINKLE": { "value": "soundExpression.twinkle", "image": "placeholder_twinkle.png" },
+    "YAWN": { "value": "soundExpression.yawn", "image": "placeholder_yawn.png" }
+  },
+  "pins": {
+    "DIGITAL WRITE PIN": { "template": "pins.digitalWritePin(DigitalPin.{{pin}}, {{value}});", "image": "placeholder_pins_digital_write.png" },
+    "DIGITAL READ PIN": { "template": "pins.digitalReadPin(DigitalPin.{{pin}})", "image": "placeholder_pins_digital_read.png" },
+    "ANALOG WRITE PIN": { "template": "pins.analogWritePin(AnalogPin.{{pin}}, {{value}});", "image": "placeholder_pins_analog_write.png" },
+    "ANALOG READ PIN": { "template": "pins.analogReadPin(AnalogPin.{{pin}})", "image": "placeholder_pins_analog_read.png" },
+    "P0": { "value": "P0", "image": "placeholder_p0.png" },
+    "P1": { "value": "P1", "image": "placeholder_p1.png" },
+    "P2": { "value": "P2", "image": "placeholder_p2.png" },
+    "templateDigitalWrite": "pins.digitalWritePin(DigitalPin.{{pin}}, {{value}})"
+  },
+  "radio": {
+    "SET GROUP": { "template": "radio.setGroup({{group}});", "image": "placeholder_radio_set_group.png" },
+    "SEND STRING": { "template": "radio.sendString(\"{{message}}\");", "image": "placeholder_radio_send_string.png" },
+    "SEND NUMBER": { "template": "radio.sendNumber({{value}});", "image": "placeholder_radio_send_number.png" },
+    "SEND VALUE": { "template": "radio.sendValue(\"{{name}}\", {{value}});", "image": "placeholder_radio_send_value.png" },
+    "RECEIVED STRING": { "template": "radio.receivedString()", "image": "placeholder_radio_received_string.png" },
+    "RECEIVED NUMBER": { "template": "radio.receivedNumber()", "image": "placeholder_radio_received_number.png" },
+    "RECEIVED SIGNAL": { "template": "radio.receivedSignalStrength()", "image": "placeholder_radio_received_signal.png" }
+  },
+  
+  "on": {
+    "ON": { "template": "{{event}}(function () {\n{{actions}}\n})", "image": "placeholder_on_block.png" }
+  },
+  
+  "events": {
+    "ON BUTTON A": { "template": "input.onButtonPressed(Button.A, function () {\n{{actions}}\n})", "image": "placeholder_event_button_a.png" },
+    "ON BUTTON B": { "template": "input.onButtonPressed(Button.B, function () {\n{{actions}}\n})", "image": "placeholder_event_button_b.png" },
+    "ON BUTTON AB": { "template": "input.onButtonPressed(Button.AB, function () {\n{{actions}}\n})", "image": "placeholder_event_button_ab.png" },
+    "ON SHAKE": { "template": "input.onGesture(Gesture.Shake, function () {\n{{actions}}\n})", "image": "placeholder_event_shake.png" },
+    "ON SCREEN UP": { "template": "input.onScreenUp(function () {\n{{actions}}\n})", "image": "placeholder_event_screen_up.png" },
+    "ON SCREEN DOWN": { "template": "input.onScreenDown(function () {\n{{actions}}\n})", "image": "placeholder_event_screen_down.png" },
+    "ON LOGO UP": { "template": "input.onLogoUp(function () {\n{{actions}}\n})", "image": "placeholder_event_logo_up.png" },
+    "ON LOGO DOWN": { "template": "input.onLogoDown(function () {\n{{actions}}\n})", "image": "placeholder_event_logo_down.png" },
+    "ON PIN PRESSED": { "template": "input.onPinPressed(TouchPin.{{pin}}, function () {\n{{actions}}\n})", "image": "placeholder_event_pin_pressed.png" },
+    "ON PIN RELEASED": { "template": "input.onPinReleased(TouchPin.{{pin}}, function () {\n{{actions}}\n})", "image": "placeholder_event_pin_released.png" },
+    "GET A MESSAGE": { "template": "radio.onReceivedString(function (receivedString) {\n{{actions}}\n})", "image": "placeholder_event_radio_message.png" },
+    "GET A NUMBER": { "template": "radio.onReceivedNumber(function (receivedNumber) {\n{{actions}}\n})", "image": "placeholder_event_radio_number.png" },
+    "GET A VALUE": { "template": "radio.onReceivedValue(function (name, value) {\n{{actions}}\n})", "image": "placeholder_event_radio_value.png" },
+    "HEAR LOUD SOUND": { "template": "input.onSound(DetectedSound.Loud, function () {\n{{actions}}\n})", "image": "placeholder_event_loud_sound.png" },
+    "HEAR QUIET SOUND": { "template": "input.onSound(DetectedSound.Quiet, function () {\n{{actions}}\n})", "image": "placeholder_event_quiet_sound.png" }
+  },
+  "basic": {
+    "SHOW LEDS": { "template": "basic.showLeds(`\n{{grid}}\n`);", "image": "placeholder_basic_show_leds.png" },
+    "SHOW ICON": { "template": "basic.showIcon({{icon}});", "image": "placeholder_basic_show_icon.png" },
+    "SHOW NUMBER": { "template": "basic.showNumber({{number}});", "image": "placeholder_basic_show_number.png" },
+    "SHOW STRING": { "template": "basic.showString(\"{{text}}\");", "image": "placeholder_basic_show_string.png" },
+    "PAUSE": { "template": "basic.pause({{ms}});", "image": "placeholder_basic_pause.png" },
+    "FOREVER": { "template": "basic.forever(function () {\n{{actions}}\n})", "image": "placeholder_basic_forever.png" },
+    "CLEAR SCREEN": { "template": "basic.clearScreen();", "image": "placeholder_basic_clear_screen.png" }
+  },
+  "input": {
+    "ACCELEROMETER X": { "template": "input.acceleration(Dimension.X)", "image": "placeholder_input_acceleration_x.png" },
+    "ACCELEROMETER Y": { "template": "input.acceleration(Dimension.Y)", "image": "placeholder_input_acceleration_y.png" },
+    "ACCELEROMETER Z": { "template": "input.acceleration(Dimension.Z)", "image": "placeholder_input_acceleration_z.png" },
+    "LIGHT LEVEL": { "template": "input.lightLevel()", "image": "placeholder_input_light_level.png" },
+    "TEMPERATURE": { "template": "input.temperature()", "image": "placeholder_input_temperature.png" },
+    "COMPASS HEADING": { "template": "input.compassHeading()", "image": "placeholder_input_compass_heading.png" },
+    "SOUND LEVEL": { "template": "input.soundLevel()", "image": "placeholder_input_sound_level.png" },
+    "RUNNING TIME": { "template": "input.runningTime()", "image": "placeholder_input_running_time.png" },
+    "BUTTON IS PRESSED": { "template": "input.buttonIsPressed(Button.{{button}})", "image": "placeholder_input_button_is_pressed.png" }
+  },
+  "music": {
+    "PLAY TONE": { "template": "music.playTone({{frequency}}, {{duration}});", "image": "placeholder_music_play_tone.png" },
+    "RING TONE": { "template": "music.ringTone({{frequency}});", "image": "placeholder_music_ring_tone.png" },
+    "PLAY MELODY": { "template": "music.playMelody(\"{{melody}}\", {{tempo}});", "image": "placeholder_music_play_melody.png" },
+    "SET TEMPO": { "template": "music.setTempo({{bpm}});", "image": "placeholder_music_set_tempo.png" },
+    "STOP ALL SOUNDS": { "template": "music.stopAllSounds();", "image": "placeholder_music_stop_all_sounds.png" },
+    "PLAY SOUND": { "template": "music.play(music.builtinPlayableSoundEffect({{sound}}), music.PlaybackMode.UntilDone)", "image": "placeholder_music_play_sound.png" }
+  },
+  "led": {
+    "PLOT": { "template": "led.plot({{x}}, {{y}});", "image": "placeholder_led_plot.png" },
+    "UNPLOT": { "template": "led.unplot({{x}}, {{y}});", "image": "placeholder_led_unplot.png" },
+    "TOGGLE": { "template": "led.toggle({{x}}, {{y}});", "image": "placeholder_led_toggle.png" },
+    "PLOT BAR GRAPH": { "template": "led.plotBarGraph({{value}}, {{high}});", "image": "placeholder_led_plot_bar_graph.png" },
+    "POINT": { "template": "led.point({{x}}, {{y}})", "image": "placeholder_led_point.png" }
+  },
+  "control": {
+    "IN BACKGROUND": { "template": "control.inBackground(function () {\n{{actions}}\n})", "image": "placeholder_control_in_background.png" },
+    "WAIT": { "template": "control.waitMicros({{micros}});", "image": "placeholder_control_wait.png" },
+    "RESET": { "template": "control.reset();", "image": "placeholder_control_reset.png" }
+  },
+  "variables": {
+    "SET": { "template": "{{variable}} = {{value}};", "image": "placeholder_variables_set.png" },
+    "CHANGE": { "template": "{{variable}} += {{value}};", "image": "placeholder_variables_change.png" },
+    "CREATE": { "template": "let {{variable}} = {{value}};", "image": "placeholder_variables_create.png" }
+  },
+  "logic": {
+    "IF": { "template": "if ({{condition}}) {\n{{then}}\n}", "image": "placeholder_logic_if.png" },
+    "IF ELSE": { "template": "if ({{condition}}) {\n{{then}}\n} else {\n{{else}}\n}", "image": "placeholder_logic_if_else.png" },
+    "AND": { "template": "{{left}} && {{right}}", "image": "placeholder_logic_and.png" },
+    "OR": { "template": "{{left}} || {{right}}", "image": "placeholder_logic_or.png" },
+    "NOT": { "template": "!{{operand}}", "image": "placeholder_logic_not.png" },
+    "EQUAL": { "template": "{{left}} == {{right}}", "image": "placeholder_logic_equal.png" },
+    "LESS THAN": { "template": "{{left}} < {{right}}", "image": "placeholder_logic_less_than.png" },
+    "GREATER THAN": { "template": "{{left}} > {{right}}", "image": "placeholder_logic_greater_than.png" }
+  },
+  "loops": {
+    "REPEAT": { "template": "for (let i = 0; i < {{times}}; i++) {\n{{actions}}\n}", "image": "placeholder_loops_repeat.png" },
+    "WHILE": { "template": "while ({{condition}}) {\n{{actions}}\n}", "image": "placeholder_loops_while.png" },
+    "FOR": { "template": "for (let {{variable}} = {{start}}; {{variable}} <= {{end}}; {{variable}}++) {\n{{actions}}\n}", "image": "placeholder_loops_for.png" }
+  },
+  "math": {
+    "ADD": { "template": "{{left}} + {{right}}", "image": "placeholder_math_add.png" },
+    "SUBTRACT": { "template": "{{left}} - {{right}}", "image": "placeholder_math_subtract.png" },
+    "MULTIPLY": { "template": "{{left}} * {{right}}", "image": "placeholder_math_multiply.png" },
+    "DIVIDE": { "template": "{{left}} / {{right}}", "image": "placeholder_math_divide.png" },
+    "RANDOM": { "template": "Math.randomRange({{min}}, {{max}})", "image": "placeholder_math_random.png" },
+    "ABS": { "template": "Math.abs({{value}})", "image": "placeholder_math_abs.png" },
+    "MIN": { "template": "Math.min({{left}}, {{right}})", "image": "placeholder_math_min.png" },
+    "MAX": { "template": "Math.max({{left}}, {{right}})", "image": "placeholder_math_max.png" }
+  },
+  "templates": {
+    "grid": "basic.showLeds(`\n{{grid}}\n`);",
+    "if": "if ({{condition}}) {\n    {{then}}\n}",
+    "ifElse": "if ({{condition}}) {\n    {{then}}\n} else {\n    {{else}}\n}"
+  }
+}
