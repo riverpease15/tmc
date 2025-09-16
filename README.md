@@ -1,4 +1,4 @@
-# TMC - micro:bit Block Recognition App
+# Tangible MakeCode - micro:bit Block Recognition App
 
 A Flask web application that uses computer vision and AI to recognize micro:bit block programming images and provide intelligent code suggestions for students.
 
