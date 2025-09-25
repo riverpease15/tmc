@@ -842,6 +842,33 @@ i, .fas, .fa, .fa-solid, .fa-brands, .fa-regular, [class*="fa-"], [class*="fas"]
   border: 1px solid #0056B3;
 }
 
+/* Quick-start options mimic user messages but are clickable */
+.bubble.chat-option {
+  cursor: pointer;
+  transition: transform 0.08s ease, background-color 0.2s ease;
+}
+.bubble.chat-option:hover {
+  background-color: #0056B3;
+}
+.bubble.chat-option:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+/* Grouped option bubbles inside one user message */
+.options-bubbles {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end; /* keep bubbles hugging the right like user messages */
+  flex: 0 0 auto; /* prevent stretching across the row */
+  max-width: 85%; /* allow wider grouped options */
+}
+
+/* Let option bubbles use the container's wider max width */
+.options-bubbles .bubble {
+  max-width: 100%;
+}
+
 .bubble {
   max-width: 70%;
   padding: 10px 12px;

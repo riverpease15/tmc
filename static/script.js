@@ -22,11 +22,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('chat-input-form');
     var input = document.getElementById('chat-text');
     var messages = document.getElementById('chat-messages');
+    var startupOptionsShown = false;
 
     function openDrawer() {
         if (!drawer) return;
         drawer.classList.remove('collapsed');
         drawer.setAttribute('aria-hidden', 'false');
+        // Show quick-start options on first open
+        if (!startupOptionsShown) {
+            showChatStartupOptions();
+            startupOptionsShown = true;
+        }
     }
 
     function collapseDrawer() {
@@ -92,6 +98,60 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) input.value = '';
             mockAiReply();
         });
+    }
+
+    // Render quick-start user-style options inside the chat
+    function showChatStartupOptions() {
+        if (!messages) return;
+        if (document.getElementById('chat-options')) return;
+
+        // Single chat message with one avatar and multiple option bubbles
+        var wrap = document.createElement('div');
+        wrap.className = 'chat-msg user';
+        wrap.id = 'chat-options';
+
+        var optionsContainer = document.createElement('div');
+        optionsContainer.className = 'options-bubbles';
+
+        var avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+
+        var options = [
+            "My code isn't working",
+            'I want to add a new feature',
+            'Help me learn a new block',
+            'My code doesn\'t match my story'
+        ];
+
+        options.forEach(function(opt) {
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble chat-option';
+            bubble.textContent = opt;
+            bubble.setAttribute('role', 'button');
+            bubble.setAttribute('tabindex', '0');
+            bubble.addEventListener('click', function() {
+                // Remove the options message
+                wrap.remove();
+                // Append the chosen text as a regular user message
+                appendMessage('user', opt);
+                mockAiReply();
+            });
+            bubble.addEventListener('keydown', function(ev){
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                    ev.preventDefault();
+                    bubble.click();
+                }
+            });
+            optionsContainer.appendChild(bubble);
+        });
+
+        // user alignment: bubble(s) then avatar
+        wrap.appendChild(optionsContainer);
+        wrap.appendChild(avatar);
+
+        messages.appendChild(wrap);
+        messages.scrollTop = messages.scrollHeight;
     }
 });
 
