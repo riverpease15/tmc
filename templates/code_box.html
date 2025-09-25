@@ -17,7 +17,7 @@
 
     <!-- Camera and Upload options -->
     <div id="image-options">
-        <!-- <p>Capture Image or Upload Image:</p> -->
+        
         <div class="camera-stack">
             <video id="camera-feed" autoplay></video>
             <button type="button" id="take-picture-btn" onclick="takePicture()" class="generate" style="display:none; margin-top:10px;"><i class="fas fa-bolt"></i> Take Picture</button>
@@ -45,13 +45,14 @@
                 <h2 style="margin: 0 0 15px 0; color: #9400D3;">Generated Code</h2>
                 <pre><code id="content" class="javascript hljs">"Your code will appear here (press Generate Code button)."</code></pre>
                 <div class="button-group">
+                    <button id="get-feedback-button" onclick="getFeedback()" class="feedback-btn hidden"><i class="fas fa-comment-dots"></i> Get Feedback</button>
                     <button id="download-button" onclick="downloadCode()"><i class="fas fa-download"></i> Download Code</button>
                     <button id="copy-button" onclick="copyCode()"><i class="fas fa-copy"></i> Copy Code to Clipboard</button>
                 </div>
-            </div>
         </div>
+    </div>
 
-        <!-- Inline encouragement card -->
+    <!-- Inline encouragement card -->
         <div id="inline-encouragement" class="inline-encouragement hidden">
             <div class="modal-card" id="inline-encouragement-card">
                 <button class="close-btn" aria-label="Close" onclick="closeInlineEncouragement()">
@@ -108,6 +109,32 @@
                     <button class="secondary" onclick="closeCopyNotice()"><i class="fas fa-times"></i><span style="margin-left:6px;">Close</span></button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Left-side slide-out chat drawer (mockup) -->
+    <div id="chat-drawer" class="chat-drawer collapsed" aria-hidden="true">
+        <button id="chat-drawer-tab" class="chat-drawer-tab" aria-label="Open Project Helper">
+            <i class="fa-solid fa-robot"></i>
+            <span class="tab-label">Chat</span>
+        </button>
+        <div class="chat-drawer-card">
+            <div class="chat-header">
+                <div class="chat-title"><i class="fa-solid fa-robot"></i> AI Helper</div>
+                <button class="close-btn" aria-label="Close" onclick="closeChatDrawer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="chat-msg ai">
+                    <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="bubble">Hi there! How can I help you with your project?</div>
+                </div>
+            </div>
+            <form id="chat-input-form" class="chat-input" autocomplete="off">
+                <input id="chat-text" type="text" placeholder="Describe what you're trying to build..." />
+                <button type="submit" class="send"><i class="fa-solid fa-paper-plane"></i></button>
+            </form>
         </div>
     </div>
 

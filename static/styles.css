@@ -222,10 +222,23 @@ body {
   background: #ffffff;
   color: #333;
   border: 2px solid #eee;
-  width: 36px; height: 36px;
+  width: 32px; height: 32px;
   border-radius: 50%;
-  display: grid; place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  font-size: 12px;
+}
+
+.close-btn i {
+  display: block;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 .close-btn:hover { background: #f3f3f3; }
 
@@ -416,6 +429,7 @@ button:hover, .upload-label:hover {
   display: flex;
   flex-direction: column;
   transform-origin: center;
+  z-index: 10; /* Above the feedback button */
 }
 
 /* When encouragement is shown, code box moves left */
@@ -520,6 +534,56 @@ pre code {
 /* Generated Code buttons - Purple hover */
 #code-box .button-group button:hover {
   background-color: #9400D3;
+}
+
+/* Feedback button - Blue theme, same size as other buttons */
+.feedback-btn {
+  background-color: #007BFF !important;
+  color: #ffffff !important;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+  opacity: 0;
+  transform: scale(1.3) translateY(-20px);
+  animation: none;
+}
+
+.feedback-btn.visible {
+  opacity: 1;
+  animation: popInBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.feedback-btn:hover {
+  background-color: #9400D3 !important;
+  transform: scale(1.05) translateY(-2px);
+}
+
+.feedback-btn i {
+  margin-right: 5px;
+}
+
+@keyframes popInBounce {
+  0% {
+    opacity: 0;
+    transform: scale(1.3) translateY(-20px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) translateY(-5px);
+  }
+  70% {
+    transform: scale(0.95) translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 #image-options .or-text {
@@ -643,4 +707,183 @@ i, .fas, .fa, .fa-solid, .fa-brands, .fa-regular, [class*="fa-"], [class*="fas"]
 /* Code elements should use monospace font for readability */
 .hljs, .hljs *, pre code, #content, #content *, pre, code {
   font-family: "Courier New", "Monaco", "Menlo", "Ubuntu Mono", monospace !important;
+}
+
+/* ==========================
+   Left Chat Drawer (Mockup)
+   ========================== */
+.chat-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 420px;
+  max-width: 90vw;
+  z-index: 1100;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none; /* container doesn't capture clicks, inner card/tab will */
+}
+
+.chat-drawer.collapsed .chat-drawer-card {
+  transform: translateX(-100%);
+  box-shadow: none;
+}
+
+
+.chat-drawer .chat-drawer-card {
+  pointer-events: auto;
+  background: #ffffff;
+  border: 3px solid #007BFF;
+  border-radius: 16px;
+  height: calc(100vh - 40px);
+  margin: 20px 0 20px 16px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+  transition: transform 420ms cubic-bezier(.2, .7, .3, 1.2), box-shadow 320ms ease;
+  position: relative; /* Enable relative positioning for the tab */
+}
+
+.chat-drawer-tab {
+  pointer-events: auto;
+  position: absolute;
+  top: 140px;
+  left: 3px;
+  background: #007BFF;
+  color: #fff;
+  border: none;
+  width: 44px;
+  height: 120px;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+  z-index: 1101;
+  transition: left 420ms cubic-bezier(.2, .7, .3, 1.2);
+}
+
+.chat-drawer:not(.collapsed) .chat-drawer-tab {
+  left: 388px; /* position at the right edge of the card, no gap (16px margin + 380px width - 44px tab width) */
+}
+
+.chat-drawer-tab i { font-size: 18px; }
+.chat-drawer-tab .tab-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.chat-header {
+  position: relative;
+  height: 72px;
+  background: linear-gradient(135deg, #007BFF, #0056B3);
+  display: flex;
+  align-items: center;
+  padding: 0 16px 0 18px;
+}
+
+.chat-title {
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 16px;
+  background: #f7faff;
+  overflow-y: auto;
+}
+
+.chat-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.chat-msg .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  border: 2px solid #007BFF22;
+  color: #007BFF;
+}
+
+.chat-msg.ai .bubble {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #E3F0FF;
+}
+
+.chat-msg.user {
+  justify-content: flex-end;
+}
+
+.chat-msg.user .bubble {
+  background: #007BFF;
+  color: #fff;
+  border: 1px solid #0056B3;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  line-height: 1.3;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.chat-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #E8EEF7;
+  background: #ffffff;
+}
+
+.chat-input input[type="text"] {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #cfe2ff;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.chat-input .send {
+  background: #9400D3;
+  color: #fff;
+  border: none;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chat-input .send:hover { background: #7B1FA2; }
+
+/* Small screens: slightly narrower drawer */
+@media (max-width: 480px) {
+  .chat-drawer .chat-drawer-card { width: 320px; }
 }

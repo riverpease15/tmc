@@ -15,6 +15,86 @@ clipboard.on('error', function(e) {
     console.error('Copy failed:', e);
 });
 
+// Chat Drawer
+document.addEventListener('DOMContentLoaded', function() {
+    var drawer = document.getElementById('chat-drawer');
+    var tab = document.getElementById('chat-drawer-tab');
+    var form = document.getElementById('chat-input-form');
+    var input = document.getElementById('chat-text');
+    var messages = document.getElementById('chat-messages');
+
+    function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('collapsed');
+        drawer.setAttribute('aria-hidden', 'false');
+    }
+
+    function collapseDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('collapsed');
+        drawer.setAttribute('aria-hidden', 'true');
+    }
+
+    window.closeChatDrawer = collapseDrawer;
+
+    if (tab) {
+        tab.addEventListener('click', function() {
+            if (drawer.classList.contains('collapsed')) {
+                openDrawer();
+                setTimeout(function(){ input && input.focus(); }, 250);
+            } else {
+                collapseDrawer();
+            }
+        });
+    }
+
+    function appendMessage(role, text) {
+        if (!messages) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'chat-msg ' + (role === 'user' ? 'user' : 'ai');
+        var avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
+        var bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = text;
+        if (role === 'user') {
+            // user messages align right: place bubble before avatar visually by order
+            wrap.appendChild(bubble);
+            wrap.appendChild(avatar);
+        } else {
+            wrap.appendChild(avatar);
+            wrap.appendChild(bubble);
+        }
+        messages.appendChild(wrap);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Lightweight canned reply for mock chat drawer
+    function mockAiReply() {
+        var hints = [
+            "Cool! Tell me which buttons, pins, or sounds you want to use.",
+            "Awesome idea. Do you want to add lights, sounds, or radio messages?",
+            "Nice! Should it react to light, temperature, or a button press?",
+            "Great! We can start simple. What should happen first?",
+            "Got it. Do you want it to send a message to another micro:bit?"
+        ];
+        var msg = hints[Math.floor(Math.random() * hints.length)];
+        setTimeout(function(){ appendMessage('ai', msg); }, 600);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var text = (input && input.value || '').trim();
+            if (!text) return;
+            appendMessage('user', text);
+            if (input) input.value = '';
+            mockAiReply();
+        });
+    }
+});
+
 function generateCode() {
     // Display "Working on..." with a typing effect
     var contentElement = document.getElementById('content');
@@ -47,8 +127,11 @@ function generateCode() {
                     generateBtn.disabled = false;
                 }
 
-                // Generate AI responses sequentially - encouragement first, then suggestions
-                generateAIResponsesSequentially();
+                // Show feedback button with animation
+                showFeedbackButton();
+
+                // Generate AI responses sequentially - only suggestions, no automatic encouragement
+                generateStreamingIdea();
             } else if (xhr.readyState == 4 && xhr.status === 400) {
                 // No image uploaded for this session
                 contentElement.textContent = 'Please upload or capture an image first.';
@@ -65,25 +148,54 @@ function generateCode() {
     }, 3000); // 3000 milliseconds = 3 seconds
 }
 
-// Sequential generation approach - encouragement first, then suggestions
-async function generateAIResponsesSequentially() {
-    try {
-        // Generate encouragement with streaming (word by word)
-        await generateStreamingEncouragement();
-        
-        // Then generate idea with streaming (word by word)
-        await generateStreamingIdea();
-        
-    } catch (e) {
-        console.error('AI generation failed:', e);
-        // Show fallback messages
-        showEncouragement("Fantastic work! You're building your programming skills and doing amazing!");
-        showSuggestions({
-            idea: "Try adding some sound or light effects when an event happens!",
-            blocks: ["ON BUTTON A", "SHOW ICON", "PLAY SOUND"]
-        });
-    }
+// Show feedback button with animation
+function showFeedbackButton() {
+    const feedbackBtn = document.getElementById('get-feedback-button');
+    if (!feedbackBtn) return;
+    
+    // Show the button and trigger animation
+    feedbackBtn.classList.remove('hidden');
+    setTimeout(function() {
+        feedbackBtn.classList.add('visible');
+    }, 600); // Delay to let code generation finish
 }
+
+// Show encouragement popup immediately with empty content
+function showEncouragementPopup() {
+    const encouragement = document.getElementById('inline-encouragement');
+    const codeBox = document.getElementById('code-box');
+    const encouragementText = document.getElementById('inline-encouragement-text');
+    
+    if (!encouragement || !codeBox || !encouragementText) return;
+    
+    // Set empty content initially
+    encouragementText.innerHTML = '<h3>🎉 Getting feedback...</h3>';
+    
+    // Show the encouragement card immediately
+    encouragement.classList.remove('hidden');
+    encouragement.classList.add('visible');
+    
+    // Add class to code box to make it smaller and move left
+    codeBox.classList.add('with-encouragement');
+}
+
+// Get Feedback function - only generates encouragement when button is clicked
+function getFeedback() {
+    // Check if there's generated code to provide feedback on
+    const contentElement = document.getElementById('content');
+    if (!contentElement || contentElement.textContent.includes('Your code will appear here')) {
+        alert('Please generate some code first before requesting feedback!');
+        return;
+    }
+    
+    // Show encouragement popup immediately with empty content
+    showEncouragementPopup();
+    
+    // Generate encouragement when button is clicked
+    generateStreamingEncouragement();
+}
+
+// Removed legacy parallel generator; using dedicated streaming functions
 
 // Generate streaming encouragement word by word
 async function generateStreamingEncouragement() {
@@ -158,6 +270,7 @@ async function generateStreamingIdea() {
         let buffer = '';
         let currentText = '';
         let hasStarted = false;
+        let streamedBlocks = [];
         
         while (true) {
             const { done, value } = await reader.read();
@@ -173,6 +286,17 @@ async function generateStreamingIdea() {
                     try {
                         const data = JSON.parse(line.slice(6));
                         
+                        // Server may stream blocks separately for the UI
+                        if (Array.isArray(data.blocks)) {
+                            streamedBlocks = data.blocks;
+                            const blocksHtml = streamedBlocks.map(block => `<li><code>${block}</code></li>`).join('');
+                            const base = document.getElementById('suggestion-text').innerHTML;
+                            document.getElementById('suggestion-text').innerHTML =
+                                `${base}
+                                 <p><strong>🧩 Blocks to Explore:</strong></p>
+                                 <ul>${blocksHtml}</ul>`;
+                        }
+
                         if (data.word) {
                             // Show popup only when first word arrives
                             if (!hasStarted) {
@@ -187,8 +311,13 @@ async function generateStreamingIdea() {
                         }
                         
                         if (data.done) {
-                            // Extract blocks from the idea text and show them
-                            const blocks = extractBlocksFromIdea(currentText);
+                            // Finalize idea text with a light grammar tidy
+                            currentText = tidyIdeaSentence(currentText);
+                            document.getElementById('suggestion-text').innerHTML = 
+                                `<p><strong>💡 Idea to Try:</strong> ${currentText}</p>`;
+
+                            // If no streamed blocks, extract from final text as fallback
+                            const blocks = streamedBlocks.length ? streamedBlocks : extractBlocksFromIdea(currentText);
                             if (blocks.length > 0) {
                                 const blocksHtml = blocks.map(block => `<li><code>${block}</code></li>`).join('');
                                 document.getElementById('suggestion-text').innerHTML = 
@@ -208,8 +337,8 @@ async function generateStreamingIdea() {
         console.error('Streaming idea failed:', e);
         // Fallback to regular suggestions
         showSuggestions({
-            idea: "What if you added some sound effects when you press a button?",
-            blocks: ["ON BUTTON A", "PLAY SOUND"]
+            idea: "What if you added some sound effects when you press a button and sent a message to other devices?",
+            blocks: ["ON BUTTON A", "PLAY SOUND", "SEND STRING", "SHOW ICON"]
         });
     }
 }
@@ -231,6 +360,24 @@ function extractBlocksFromIdea(ideaText) {
         }
     }
     return blocks;
+}
+
+// Light grammar cleanup for streamed idea text (post-processing)
+function tidyIdeaSentence(text) {
+    if (!text) return text;
+    let t = text;
+    // Normalize whitespace
+    t = t.replace(/\s+/g, ' ').trim();
+    // Remove leftover unmatched parentheses if any
+    t = t.replace(/\([^)]*$/g, '').trim();
+    // Common fixes
+    t = t.replace(/\bwhen you press and read from pin\b/i, 'when you press and the value from pin');
+    t = t.replace(/\bwhen you press and the read from pin\b/i, 'when you press and the value from pin');
+    t = t.replace(/\bshowed a string\b/i, 'showed a string');
+    // Ensure it starts with a capital and ends with a question mark
+    t = t.charAt(0).toUpperCase() + t.slice(1);
+    if (!/[?!.]$/.test(t)) t += '?';
+    return t;
 }
 
 // Show encouragement with improved animation
