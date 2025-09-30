@@ -45,23 +45,23 @@
     "YAWN": { "value": "soundExpression.yawn", "image": "placeholder_yawn.png" }
   },
   "pins": {
-    "DIGITAL WRITE PIN": { "template": "pins.digitalWritePin(DigitalPin.{{pin}}, {{value}});", "image": "placeholder_pins_digital_write.png" },
-    "DIGITAL READ PIN": { "template": "pins.digitalReadPin(DigitalPin.{{pin}})", "image": "placeholder_pins_digital_read.png" },
-    "ANALOG WRITE PIN": { "template": "pins.analogWritePin(AnalogPin.{{pin}}, {{value}});", "image": "placeholder_pins_analog_write.png" },
-    "ANALOG READ PIN": { "template": "pins.analogReadPin(AnalogPin.{{pin}})", "image": "placeholder_pins_analog_read.png" },
+    "Digital Write Pin": { "template": "pins.digitalWritePin(DigitalPin.{{pin}}, {{value}});", "image": "placeholder_pins_digital_write.png" },
+    "Digital Read Pin": { "template": "pins.digitalReadPin(DigitalPin.{{pin}})", "image": "placeholder_pins_digital_read.png" },
+    "Analog Write Pin": { "template": "pins.analogWritePin(AnalogPin.{{pin}}, {{value}});", "image": "placeholder_pins_analog_write.png" },
+    "Analog Read Pin": { "template": "pins.analogReadPin(AnalogPin.{{pin}})", "image": "placeholder_pins_analog_read.png" },
     "P0": { "value": "P0", "image": "placeholder_p0.png" },
     "P1": { "value": "P1", "image": "placeholder_p1.png" },
     "P2": { "value": "P2", "image": "placeholder_p2.png" },
     "templateDigitalWrite": "pins.digitalWritePin(DigitalPin.{{pin}}, {{value}})"
   },
   "radio": {
-    "SET GROUP": { "template": "radio.setGroup({{group}});", "image": "placeholder_radio_set_group.png" },
-    "SEND STRING": { "template": "radio.sendString(\"{{message}}\");", "image": "placeholder_radio_send_string.png" },
-    "SEND NUMBER": { "template": "radio.sendNumber({{value}});", "image": "placeholder_radio_send_number.png" },
-    "SEND VALUE": { "template": "radio.sendValue(\"{{name}}\", {{value}});", "image": "placeholder_radio_send_value.png" },
-    "RECEIVED STRING": { "template": "radio.receivedString()", "image": "placeholder_radio_received_string.png" },
-    "RECEIVED NUMBER": { "template": "radio.receivedNumber()", "image": "placeholder_radio_received_number.png" },
-    "RECEIVED SIGNAL": { "template": "radio.receivedSignalStrength()", "image": "placeholder_radio_received_signal.png" }
+    "Set Group": { "template": "radio.setGroup({{group}});", "image": "placeholder_radio_set_group.png" },
+    "Send String": { "template": "radio.sendString(\"{{message}}\");", "image": "placeholder_radio_send_string.png" },
+    "Send Number": { "template": "radio.sendNumber({{value}});", "image": "placeholder_radio_send_number.png" },
+    "Send Value": { "template": "radio.sendValue(\"{{name}}\", {{value}});", "image": "placeholder_radio_send_value.png" },
+    "Received String": { "template": "radio.receivedString()", "image": "placeholder_radio_received_string.png" },
+    "Received Number": { "template": "radio.receivedNumber()", "image": "placeholder_radio_received_number.png" },
+    "Received Signal": { "template": "radio.receivedSignalStrength()", "image": "placeholder_radio_received_signal.png" }
   },
   
   "on": {
@@ -69,91 +69,278 @@
   },
   
   "events": {
-    "ON BUTTON A": { "template": "input.onButtonPressed(Button.A, function () {\n{{actions}}\n})", "image": "placeholder_event_button_a.png" },
-    "ON BUTTON B": { "template": "input.onButtonPressed(Button.B, function () {\n{{actions}}\n})", "image": "placeholder_event_button_b.png" },
-    "ON BUTTON AB": { "template": "input.onButtonPressed(Button.AB, function () {\n{{actions}}\n})", "image": "placeholder_event_button_ab.png" },
-    "ON SHAKE": { "template": "input.onGesture(Gesture.Shake, function () {\n{{actions}}\n})", "image": "placeholder_event_shake.png" },
-    "ON SCREEN UP": { "template": "input.onScreenUp(function () {\n{{actions}}\n})", "image": "placeholder_event_screen_up.png" },
-    "ON SCREEN DOWN": { "template": "input.onScreenDown(function () {\n{{actions}}\n})", "image": "placeholder_event_screen_down.png" },
-    "ON LOGO UP": { "template": "input.onLogoUp(function () {\n{{actions}}\n})", "image": "placeholder_event_logo_up.png" },
-    "ON LOGO DOWN": { "template": "input.onLogoDown(function () {\n{{actions}}\n})", "image": "placeholder_event_logo_down.png" },
-    "ON PIN PRESSED": { "template": "input.onPinPressed(TouchPin.{{pin}}, function () {\n{{actions}}\n})", "image": "placeholder_event_pin_pressed.png" },
-    "ON PIN RELEASED": { "template": "input.onPinReleased(TouchPin.{{pin}}, function () {\n{{actions}}\n})", "image": "placeholder_event_pin_released.png" },
-    "GET A MESSAGE": { "template": "radio.onReceivedString(function (receivedString) {\n{{actions}}\n})", "image": "placeholder_event_radio_message.png" },
-    "GET A NUMBER": { "template": "radio.onReceivedNumber(function (receivedNumber) {\n{{actions}}\n})", "image": "placeholder_event_radio_number.png" },
-    "GET A VALUE": { "template": "radio.onReceivedValue(function (name, value) {\n{{actions}}\n})", "image": "placeholder_event_radio_value.png" },
-    "HEAR LOUD SOUND": { "template": "input.onSound(DetectedSound.Loud, function () {\n{{actions}}\n})", "image": "placeholder_event_loud_sound.png" },
-    "HEAR QUIET SOUND": { "template": "input.onSound(DetectedSound.Quiet, function () {\n{{actions}}\n})", "image": "placeholder_event_quiet_sound.png" }
+    "On Button A": { 
+      "template": "input.onButtonPressed(Button.A, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_button_a.png",
+      "description": "This block waits for someone to press button A, then does whatever actions you put inside it! It's like saying 'When button A gets pressed, do this...' Perfect for creating interactive games or projects that respond to button presses!"
+    },
+    "On Button B": { 
+      "template": "input.onButtonPressed(Button.B, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_button_b.png",
+      "description": "Just like the A button, but for button B! This block waits for someone to press button B, then runs the actions you put inside. Great for creating two-player games or giving users different options with different buttons!"
+    },
+    "On Button AB": { 
+      "template": "input.onButtonPressed(Button.AB, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_button_ab.png",
+      "description": "This special block waits for BOTH buttons A and B to be pressed at the same time! It's like a secret combination - both buttons must be pressed together to trigger the actions. Perfect for special features or secret codes!"
+    },
+    "On Shake": { 
+      "template": "input.onGesture(Gesture.Shake, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_shake.png",
+      "description": "Detects when you shake your micro:bit! It's like having a magic wand that responds to shaking. Perfect for creating dice games, magic tricks, or any project that should respond to shaking movements!"
+    },
+    "On Screen Up": { 
+      "template": "input.onScreenUp(function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_screen_up.png",
+      "description": "Triggers when you turn your micro:bit so the screen faces up toward the sky! It's like having a sensor that knows which way is up. Great for creating projects that respond to orientation, like a digital level or compass!"
+    },
+    "On Screen Down": { 
+      "template": "input.onScreenDown(function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_screen_down.png",
+      "description": "Triggers when you flip your micro:bit so the screen faces down toward the ground! Perfect for creating projects that respond to being flipped over, like a magic trick or a game that uses orientation!"
+    },
+    "On Logo Up": { 
+      "template": "input.onLogoUp(function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_logo_up.png",
+      "description": "Detects when you tilt your micro:bit so the logo (the micro:bit symbol) points up! It's like having a sensor that knows when the logo is facing upward. Great for creating interactive projects that respond to tilting!"
+    },
+    "On Logo Down": { 
+      "template": "input.onLogoDown(function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_logo_down.png",
+      "description": "Triggers when you tilt your micro:bit so the logo points down! Perfect for creating projects that respond to different tilting positions, like a game controller or interactive art piece!"
+    },
+    "On Pin Pressed": { 
+      "template": "input.onPinPressed(TouchPin.{{pin}}, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_pin_pressed.png",
+      "description": "Detects when you touch one of the metal pins on your micro:bit! It's like having touch-sensitive buttons. Perfect for creating projects that respond to touch, like a touch piano or interactive art installation!"
+    },
+    "On Pin Released": { 
+      "template": "input.onPinReleased(TouchPin.{{pin}}, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_pin_released.png",
+      "description": "Triggers when you stop touching one of the metal pins! It's like detecting when you lift your finger off a touch button. Great for creating projects that respond to both touching and releasing, like a touch-sensitive game!"
+    },
+    "Get A Message": { 
+      "template": "radio.onReceivedString(function (receivedString) {\n{{actions}}\n})", 
+      "image": "placeholder_event_radio_message.png",
+      "description": "Waits for your micro:bit to receive a text message from another micro:bit! It's like having a tiny walkie-talkie. Perfect for creating communication projects, multiplayer games, or secret message systems!"
+    },
+    "Get A Number": { 
+      "template": "radio.onReceivedNumber(function (receivedNumber) {\n{{actions}}\n})", 
+      "image": "placeholder_event_radio_number.png",
+      "description": "Waits for your micro:bit to receive a number from another micro:bit! Great for sending scores, sensor readings, or any numerical data between micro:bits. Perfect for multiplayer games or data sharing projects!"
+    },
+    "Get A Value": { 
+      "template": "radio.onReceivedValue(function (name, value) {\n{{actions}}\n})", 
+      "image": "placeholder_event_radio_value.png",
+      "description": "Receives named data from another micro:bit! It's like getting a package with a label - you know what the data is called and what value it has. Perfect for complex communication between micro:bits!"
+    },
+    "Hear Loud Sound": { 
+      "template": "input.onSound(DetectedSound.Loud, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_loud_sound.png",
+      "description": "Triggers when your micro:bit detects a loud sound like clapping, shouting, or music! It's like having a sound-activated switch. Perfect for creating projects that respond to noise, like sound-activated lights or games!"
+    },
+    "Hear Quiet Sound": { 
+      "template": "input.onSound(DetectedSound.Quiet, function () {\n{{actions}}\n})", 
+      "image": "placeholder_event_quiet_sound.png",
+      "description": "Triggers when your micro:bit detects a quiet sound like whispering or gentle tapping! Great for creating projects that respond to soft sounds, like a quiet alarm or a sound-sensitive art piece!"
+    }
   },
   "basic": {
-    "SHOW LEDS": { "template": "basic.showLeds(`\n{{grid}}\n`);", "image": "placeholder_basic_show_leds.png" },
-    "SHOW ICON": { "template": "basic.showIcon({{icon}});", "image": "placeholder_basic_show_icon.png" },
-    "SHOW NUMBER": { "template": "basic.showNumber({{number}});", "image": "placeholder_basic_show_number.png" },
-    "SHOW STRING": { "template": "basic.showString(\"{{text}}\");", "image": "placeholder_basic_show_string.png" },
-    "PAUSE": { "template": "basic.pause({{ms}});", "image": "placeholder_basic_pause.png" },
-    "FOREVER": { "template": "basic.forever(function () {\n{{actions}}\n})", "image": "placeholder_basic_forever.png" },
-    "CLEAR SCREEN": { "template": "basic.clearScreen();", "image": "placeholder_basic_clear_screen.png" }
+    "Show LEDs": { 
+      "template": "basic.showLeds(`\n{{grid}}\n`);", 
+      "image": "placeholder_basic_show_leds.png",
+      "description": "This block lets you create your own light patterns on the micro:bit's LED screen! You can draw pictures, letters, or even simple animations by turning individual LEDs on and off. It's like having a tiny 5x5 pixel art canvas!"
+    },
+    "Show Icon": { 
+      "template": "basic.showIcon({{icon}});", 
+      "image": "placeholder_basic_show_icon.png",
+      "description": "Display fun icons like hearts, smiley faces, or shapes on your micro:bit! This is perfect for showing emotions, creating simple games, or just making your project look cool. You can choose from lots of built-in icons."
+    },
+    "Show Number": { 
+      "template": "basic.showNumber({{number}});", 
+      "image": "placeholder_basic_show_number.png",
+      "description": "Show any number on the LED screen! Great for displaying scores, counting things, or showing sensor readings. The micro:bit will scroll the number across the screen so you can read it easily."
+    },
+    "Show String": { 
+      "template": "basic.showString(\"{{text}}\");", 
+      "image": "placeholder_basic_show_string.png",
+      "description": "Display text messages on your micro:bit! You can show words, sentences, or even your name. The text will scroll across the screen letter by letter, like a tiny message board."
+    },
+    "Pause": { 
+      "template": "basic.pause({{ms}});", 
+      "image": "placeholder_basic_pause.png",
+      "description": "Make your micro:bit wait for a certain amount of time before doing the next thing. It's like hitting the pause button on a video - everything stops for the time you specify. Great for creating delays or timing effects!"
+    },
+    "Forever": { 
+      "template": "basic.forever(function () {\n{{actions}}\n})", 
+      "image": "placeholder_basic_forever.png",
+      "description": "This block makes your micro:bit repeat actions over and over again, forever! It's like a loop that never ends. Perfect for things that should keep happening, like checking sensors or running games."
+    },
+    "Clear Screen": { 
+      "template": "basic.clearScreen();", 
+      "image": "placeholder_basic_clear_screen.png",
+      "description": "Turn off all the LEDs on the micro:bit screen, making it completely dark. It's like erasing everything you've drawn - perfect for starting fresh or creating blinking effects!"
+    }
   },
   "input": {
-    "ACCELEROMETER X": { "template": "input.acceleration(Dimension.X)", "image": "placeholder_input_acceleration_x.png" },
-    "ACCELEROMETER Y": { "template": "input.acceleration(Dimension.Y)", "image": "placeholder_input_acceleration_y.png" },
-    "ACCELEROMETER Z": { "template": "input.acceleration(Dimension.Z)", "image": "placeholder_input_acceleration_z.png" },
-    "LIGHT LEVEL": { "template": "input.lightLevel()", "image": "placeholder_input_light_level.png" },
-    "TEMPERATURE": { "template": "input.temperature()", "image": "placeholder_input_temperature.png" },
-    "COMPASS HEADING": { "template": "input.compassHeading()", "image": "placeholder_input_compass_heading.png" },
-    "SOUND LEVEL": { "template": "input.soundLevel()", "image": "placeholder_input_sound_level.png" },
-    "RUNNING TIME": { "template": "input.runningTime()", "image": "placeholder_input_running_time.png" },
-    "BUTTON IS PRESSED": { "template": "input.buttonIsPressed(Button.{{button}})", "image": "placeholder_input_button_is_pressed.png" }
+    "Accelerometer X": { 
+      "template": "input.acceleration(Dimension.X)", 
+      "image": "placeholder_input_acceleration_x.png",
+      "description": "Detects how fast your micro:bit is moving sideways (left and right). It's like having a built-in motion sensor! Great for creating games that respond to tilting or shaking your micro:bit."
+    },
+    "Accelerometer Y": { 
+      "template": "input.acceleration(Dimension.Y)", 
+      "image": "placeholder_input_acceleration_y.png",
+      "description": "Measures how fast your micro:bit is moving up and down. Perfect for detecting when you lift it up or drop it down. You can use this to create games that respond to vertical movements!"
+    },
+    "Accelerometer Z": { 
+      "template": "input.acceleration(Dimension.Z)", 
+      "image": "placeholder_input_acceleration_z.png",
+      "description": "Senses movement toward and away from you (forward and backward). Combined with X and Y, this gives you full 3D motion detection! Great for creating interactive projects that respond to how you move your micro:bit."
+    },
+    "Light Level": { 
+      "template": "input.lightLevel()", 
+      "image": "placeholder_input_light_level.png",
+      "description": "Measures how bright the light around your micro:bit is! It can tell the difference between bright sunlight, room light, and darkness. Perfect for creating projects that respond to light changes, like automatic night lights!"
+    },
+    "Temperature": { 
+      "template": "input.temperature()", 
+      "image": "placeholder_input_temperature.png",
+      "description": "Reads the temperature around your micro:bit! It can tell you if it's hot or cold. Great for making weather stations, temperature alarms, or projects that change based on how warm or cool it is."
+    },
+    "Compass Heading": { 
+      "template": "input.compassHeading()", 
+      "image": "placeholder_input_compass_heading.png",
+      "description": "Acts like a digital compass! It tells you which direction your micro:bit is pointing (North, South, East, West, or any angle in between). Perfect for creating navigation projects or games that use direction!"
+    },
+    "Sound Level": { 
+      "template": "input.soundLevel()", 
+      "image": "placeholder_input_sound_level.png",
+      "description": "Measures how loud sounds are around your micro:bit! It can detect clapping, music, voices, or any other sounds. Great for creating projects that respond to noise levels, like sound-activated lights or games!"
+    },
+    "Running Time": { 
+      "template": "input.runningTime()", 
+      "image": "placeholder_input_running_time.png",
+      "description": "Keeps track of how long your micro:bit has been running, in milliseconds! It's like a stopwatch that starts when your program begins. Perfect for timing things, creating delays, or measuring how long something takes."
+    },
+    "Button Is Pressed": { 
+      "template": "input.buttonIsPressed(Button.{{button}})", 
+      "image": "placeholder_input_button_is_pressed.png",
+      "description": "Checks if a button (A or B) is currently being pressed down. It's like asking 'Is someone pushing this button right now?' Perfect for creating interactive games or projects that respond to button presses!"
+    }
   },
   "music": {
-    "PLAY TONE": { "template": "music.playTone({{frequency}}, {{duration}});", "image": "placeholder_music_play_tone.png" },
-    "RING TONE": { "template": "music.ringTone({{frequency}});", "image": "placeholder_music_ring_tone.png" },
-    "PLAY MELODY": { "template": "music.playMelody(\"{{melody}}\", {{tempo}});", "image": "placeholder_music_play_melody.png" },
-    "SET TEMPO": { "template": "music.setTempo({{bpm}});", "image": "placeholder_music_set_tempo.png" },
-    "STOP ALL SOUNDS": { "template": "music.stopAllSounds();", "image": "placeholder_music_stop_all_sounds.png" },
-    "PLAY SOUND": { "template": "music.play(music.builtinPlayableSoundEffect({{sound}}), music.PlaybackMode.UntilDone)", "image": "placeholder_music_play_sound.png" }
+    "Play Tone": { 
+      "template": "music.playTone({{frequency}}, {{duration}});", 
+      "image": "placeholder_music_play_tone.png",
+      "description": "Make your micro:bit play musical notes! You can choose the pitch (how high or low the sound is) and how long it plays. It's like having a tiny musical instrument that can play any note you want!"
+    },
+    "Play Melody": { 
+      "template": "music.playMelody(\"{{melody}}\", {{tempo}});", 
+      "image": "placeholder_music_play_melody.png",
+      "description": "Play entire songs or melodies on your micro:bit! You can write out musical notes and it will play them in order, just like a real song. Great for creating musical projects or adding sound effects to games!"
+    },
+    "Set Tempo": { 
+      "template": "music.setTempo({{bpm}});", 
+      "image": "placeholder_music_set_tempo.png",
+      "description": "Controls how fast or slow your music plays! BPM stands for 'beats per minute' - higher numbers make music faster, lower numbers make it slower. Perfect for creating different moods with the same melody!"
+    },
+    "Stop All Sounds": { 
+      "template": "music.stopAllSounds();", 
+      "image": "placeholder_music_stop_all_sounds.png",
+      "description": "Instantly stops all music and sounds playing on your micro:bit. It's like hitting the stop button on a music player. Great for creating quiet moments or stopping sounds when something specific happens!"
+    },
+    "Play Sound": { 
+      "template": "music.play(music.builtinPlayableSoundEffect({{sound}}), music.PlaybackMode.UntilDone)", 
+      "image": "placeholder_music_play_sound.png",
+      "description": "Play fun sound effects like beeps, chirps, or musical sounds! These are pre-made sounds that are perfect for games, notifications, or just making your project more exciting. You can choose from lots of different sound effects!"
+    }
   },
   "led": {
-    "PLOT": { "template": "led.plot({{x}}, {{y}});", "image": "placeholder_led_plot.png" },
-    "UNPLOT": { "template": "led.unplot({{x}}, {{y}});", "image": "placeholder_led_unplot.png" },
-    "TOGGLE": { "template": "led.toggle({{x}}, {{y}});", "image": "placeholder_led_toggle.png" },
-    "PLOT BAR GRAPH": { "template": "led.plotBarGraph({{value}}, {{high}});", "image": "placeholder_led_plot_bar_graph.png" },
-    "POINT": { "template": "led.point({{x}}, {{y}})", "image": "placeholder_led_point.png" }
+    "Plot": { "template": "led.plot({{x}}, {{y}});", "image": "placeholder_led_plot.png" },
+    "Unplot": { "template": "led.unplot({{x}}, {{y}});", "image": "placeholder_led_unplot.png" },
+    "Toggle": { "template": "led.toggle({{x}}, {{y}});", "image": "placeholder_led_toggle.png" },
+    "Plot Bar Graph": { "template": "led.plotBarGraph({{value}}, {{high}});", "image": "placeholder_led_plot_bar_graph.png" },
+    "Point": { "template": "led.point({{x}}, {{y}})", "image": "placeholder_led_point.png" }
   },
   "control": {
-    "IN BACKGROUND": { "template": "control.inBackground(function () {\n{{actions}}\n})", "image": "placeholder_control_in_background.png" },
-    "WAIT": { "template": "control.waitMicros({{micros}});", "image": "placeholder_control_wait.png" },
-    "RESET": { "template": "control.reset();", "image": "placeholder_control_reset.png" }
+    "In Background": { "template": "control.inBackground(function () {\n{{actions}}\n})", "image": "placeholder_control_in_background.png" },
+    "Wait": { "template": "control.waitMicros({{micros}});", "image": "placeholder_control_wait.png" },
+    "Reset": { "template": "control.reset();", "image": "placeholder_control_reset.png" }
   },
   "variables": {
-    "SET": { "template": "{{variable}} = {{value}};", "image": "placeholder_variables_set.png" },
-    "CHANGE": { "template": "{{variable}} += {{value}};", "image": "placeholder_variables_change.png" },
-    "CREATE": { "template": "let {{variable}} = {{value}};", "image": "placeholder_variables_create.png" }
+    "Set": { "template": "{{variable}} = {{value}};", "image": "placeholder_variables_set.png" },
+    "Change": { "template": "{{variable}} += {{value}};", "image": "placeholder_variables_change.png" },
+    "Create": { "template": "let {{variable}} = {{value}};", "image": "placeholder_variables_create.png" }
   },
   "logic": {
-    "IF": { "template": "if ({{condition}}) {\n{{then}}\n}", "image": "placeholder_logic_if.png" },
-    "IF ELSE": { "template": "if ({{condition}}) {\n{{then}}\n} else {\n{{else}}\n}", "image": "placeholder_logic_if_else.png" },
-    "AND": { "template": "{{left}} && {{right}}", "image": "placeholder_logic_and.png" },
-    "OR": { "template": "{{left}} || {{right}}", "image": "placeholder_logic_or.png" },
-    "NOT": { "template": "!{{operand}}", "image": "placeholder_logic_not.png" },
-    "EQUAL": { "template": "{{left}} == {{right}}", "image": "placeholder_logic_equal.png" },
-    "LESS THAN": { "template": "{{left}} < {{right}}", "image": "placeholder_logic_less_than.png" },
-    "GREATER THAN": { "template": "{{left}} > {{right}}", "image": "placeholder_logic_greater_than.png" }
+    "If": { 
+      "template": "if ({{condition}}) {\n{{then}}\n}", 
+      "image": "placeholder_logic_if.png",
+      "description": "This is like asking a question! If something is true, then do the actions inside. It's like saying 'If it's raining, then bring an umbrella.' Perfect for making your micro:bit make decisions based on what's happening!"
+    },
+    "If Else": { 
+      "template": "if ({{condition}}) {\n{{then}}\n} else {\n{{else}}\n}", 
+      "image": "placeholder_logic_if_else.png",
+      "description": "This block gives your micro:bit two choices! If something is true, do one thing. If it's not true, do something else. It's like saying 'If it's sunny, go outside, otherwise stay inside.' Great for creating projects that respond differently to different situations!"
+    },
+    "And": { 
+      "template": "{{left}} && {{right}}", 
+      "image": "placeholder_logic_and.png",
+      "description": "This block checks if TWO things are both true at the same time! It's like saying 'If it's sunny AND warm, then go to the beach.' Both conditions must be true for the result to be true. Perfect for creating complex conditions!"
+    },
+    "Or": { 
+      "template": "{{left}} || {{right}}", 
+      "image": "placeholder_logic_or.png",
+      "description": "This block checks if EITHER thing is true! It's like saying 'If it's sunny OR warm, then go outside.' Only one of the conditions needs to be true. Great for giving your micro:bit multiple ways to trigger the same action!"
+    },
+    "Not": { 
+      "template": "!{{operand}}", 
+      "image": "placeholder_logic_not.png",
+      "description": "This block flips things around! If something is true, it makes it false. If something is false, it makes it true. It's like saying 'If it's NOT raining, then go outside.' Perfect for checking the opposite of something!"
+    },
+    "Equal": { 
+      "template": "{{left}} == {{right}}", 
+      "image": "placeholder_logic_equal.png",
+      "description": "Checks if two things are exactly the same! It's like asking 'Are these two numbers equal?' or 'Is this text the same as that text?' Perfect for comparing values and making decisions based on whether things match!"
+    },
+    "Less Than": { 
+      "template": "{{left}} < {{right}}", 
+      "image": "placeholder_logic_less_than.png",
+      "description": "Checks if one number is smaller than another! It's like asking 'Is 5 less than 10?' (Yes!) or 'Is 15 less than 10?' (No!). Great for comparing sensor readings, scores, or any numbers in your project!"
+    },
+    "Greater Than": { 
+      "template": "{{left}} > {{right}}", 
+      "image": "placeholder_logic_greater_than.png",
+      "description": "Checks if one number is bigger than another! It's like asking 'Is 10 greater than 5?' (Yes!) or 'Is 5 greater than 10?' (No!). Perfect for comparing values and making decisions based on which number is larger!"
+    }
   },
   "loops": {
-    "REPEAT": { "template": "for (let i = 0; i < {{times}}; i++) {\n{{actions}}\n}", "image": "placeholder_loops_repeat.png" },
-    "WHILE": { "template": "while ({{condition}}) {\n{{actions}}\n}", "image": "placeholder_loops_while.png" },
-    "FOR": { "template": "for (let {{variable}} = {{start}}; {{variable}} <= {{end}}; {{variable}}++) {\n{{actions}}\n}", "image": "placeholder_loops_for.png" }
+    "Repeat": { 
+      "template": "for (let i = 0; i < {{times}}; i++) {\n{{actions}}\n}", 
+      "image": "placeholder_loops_repeat.png",
+      "description": "This block makes your micro:bit do the same thing over and over again a specific number of times! It's like saying 'Do this 5 times' or 'Repeat this 10 times.' Perfect for creating patterns, counting, or doing something multiple times without writing the same code over and over!"
+    },
+    "While": { 
+      "template": "while ({{condition}}) {\n{{actions}}\n}", 
+      "image": "placeholder_loops_while.png",
+      "description": "This block keeps doing something as long as a condition is true! It's like saying 'Keep doing this while the button is pressed' or 'Keep playing music while it's dark.' The loop will stop when the condition becomes false. Great for creating projects that respond to changing conditions!"
+    },
+    "For": { 
+      "template": "for (let {{variable}} = {{start}}; {{variable}} <= {{end}}; {{variable}}++) {\n{{actions}}\n}", 
+      "image": "placeholder_loops_for.png",
+      "description": "This block counts from one number to another and does something for each number! It's like saying 'Count from 1 to 10, and for each number, do this.' Perfect for creating counting games, number patterns, or any project that needs to go through a series of numbers!"
+    }
   },
   "math": {
-    "ADD": { "template": "{{left}} + {{right}}", "image": "placeholder_math_add.png" },
-    "SUBTRACT": { "template": "{{left}} - {{right}}", "image": "placeholder_math_subtract.png" },
-    "MULTIPLY": { "template": "{{left}} * {{right}}", "image": "placeholder_math_multiply.png" },
-    "DIVIDE": { "template": "{{left}} / {{right}}", "image": "placeholder_math_divide.png" },
-    "RANDOM": { "template": "Math.randomRange({{min}}, {{max}})", "image": "placeholder_math_random.png" },
-    "ABS": { "template": "Math.abs({{value}})", "image": "placeholder_math_abs.png" },
-    "MIN": { "template": "Math.min({{left}}, {{right}})", "image": "placeholder_math_min.png" },
-    "MAX": { "template": "Math.max({{left}}, {{right}})", "image": "placeholder_math_max.png" }
+    "Add": { "template": "{{left}} + {{right}}", "image": "placeholder_math_add.png" },
+    "Subtract": { "template": "{{left}} - {{right}}", "image": "placeholder_math_subtract.png" },
+    "Multiply": { "template": "{{left}} * {{right}}", "image": "placeholder_math_multiply.png" },
+    "Divide": { "template": "{{left}} / {{right}}", "image": "placeholder_math_divide.png" },
+    "Random": { "template": "Math.randomRange({{min}}, {{max}})", "image": "placeholder_math_random.png" },
+    "Abs": { "template": "Math.abs({{value}})", "image": "placeholder_math_abs.png" },
+    "Min": { "template": "Math.min({{left}}, {{right}})", "image": "placeholder_math_min.png" },
+    "Max": { "template": "Math.max({{left}}, {{right}})", "image": "placeholder_math_max.png" }
   },
   "templates": {
     "grid": "basic.showLeds(`\n{{grid}}\n`);",

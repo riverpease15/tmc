@@ -604,13 +604,6 @@ def parse_commands(string_data):
                 handle_event(index, 2, {'type': 'sound_quiet'})
                 continue
 
-            # HEAR LOUD/QUIET SOUND (exact, mapper-aligned labels)
-            if token(index + 1) == "HEAR" and token(index + 2) == "LOUD" and token(index + 3) == "SOUND":
-                handle_event(index, 4, {'type': 'sound_loud'})
-                continue
-            if token(index + 1) == "HEAR" and token(index + 2) == "QUIET" and token(index + 3) == "SOUND":
-                handle_event(index, 4, {'type': 'sound_quiet'})
-                continue
 
             # PRESS BUTTON A/B/AB (supports single-token "PRESS BUTTON" or split)
             if (

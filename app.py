@@ -18,10 +18,9 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 file_path = None
 
-# Caching disabled: always compute fresh responses for student-specific variety
-ai_response_cache = None
-
 CODE_FILE_PATH = "static/code_file.js"
+LM_STUDIO_BASE_URL = "http://localhost:1234/v1"
+LM_STUDIO_API_KEY = "lm-studio"  # Dummy key for local LM Studio server
 
 @lru_cache(maxsize=1)
 def get_cached_block_mappings():
@@ -121,45 +120,7 @@ def _write_placeholder_code(message: str = "// code will appear here after proce
     except Exception as e:
         print(f"Warning: could not write placeholder code: {e}")
 
-def get_code_signature(js_code):
-    """
-    Create a pattern-based signature for caching similar code snippets.
-    
-    This function extracts key patterns from JavaScript code to create a signature
-    that can match similar code variations, not just exact duplicates.
-    
-    Args:
-        js_code (str): The JavaScript code to analyze
-        
-    Returns:
-        str: A signature string representing the code pattern
-    """
-    import re
-    
-    # Extract key patterns
-    triggers = re.findall(r'on(\w+)', js_code)
-    actions = re.findall(r'(show|play|send|radio|digital|analog)', js_code)
-    sensors = re.findall(r'(light|temp|accel|sound|compass)', js_code)
-    pins = re.findall(r'P[0-2]', js_code)
-    
-    # Create normalized signature
-    signature_parts = [
-        f"triggers:{sorted(triggers)}",
-        f"actions:{sorted(actions)}", 
-        f"sensors:{sorted(sensors)}",
-        f"pins:{sorted(pins)}",
-        f"length:{len(js_code.split())}"  # Rough complexity measure
-    ]
-    
-    return "|".join(signature_parts)
 
-def get_cached_suggestion(js_code, cache_type="suggestion"):
-    # Caching disabled
-    return None
-
-def cache_suggestion(js_code, response, cache_type="suggestion"):
-    # Caching disabled
-    return
 
 def analyze_student_code(js_code):
     """
@@ -704,71 +665,6 @@ def deterministic_novel_idea(analysis, used_blocks, anchors):
     blocks = [trigger_block, novel, 'SHOW ICON']
     return {"idea": idea, "blocks": blocks}
 
-def generate_targeted_suggestion(analysis, js_code):
-    """
-    Generate a targeted suggestion based on detailed code analysis.
-    
-    Args:
-        analysis (dict): Detailed analysis of the student's code
-        js_code (str): The original JavaScript code
-        
-    Returns:
-        dict: Targeted suggestion with specific encouragement and idea
-    """
-    details = analysis['specific_details']
-    
-    # Build specific encouragement based on what they're actually doing
-    encouragement_parts = []
-    
-    # Mention specific buttons used
-    if 'buttons_used' in details and details['buttons_used']:
-        buttons = ', '.join(details['buttons_used'])
-        encouragement_parts.append(f"using button{'s' if len(details['buttons_used']) > 1 else ''} {buttons}")
-    
-    # Mention specific pins used
-    if 'digital_pins_read' in details and details['digital_pins_read']:
-        pins = ', '.join(details['digital_pins_read'])
-        encouragement_parts.append(f"reading digital pin{'s' if len(details['digital_pins_read']) > 1 else ''} {pins}")
-    
-    if 'digital_pins_written' in details and details['digital_pins_written']:
-        pins = ', '.join(details['digital_pins_written'])
-        encouragement_parts.append(f"controlling digital pin{'s' if len(details['digital_pins_written']) > 1 else ''} {pins}")
-    
-    # Mention specific icons shown
-    if 'icons_shown' in details and details['icons_shown']:
-        icons = ', '.join(details['icons_shown'])
-        encouragement_parts.append(f"showing {icons} icon{'s' if len(details['icons_shown']) > 1 else ''}")
-    
-    # Mention radio messages
-    if 'radio_messages' in details and details['radio_messages']:
-        messages = ', '.join([f'"{msg}"' for msg in details['radio_messages']])
-        encouragement_parts.append(f"sending radio message{'s' if len(details['radio_messages']) > 1 else ''} {messages}")
-    
-    # Mention logic complexity
-    if 'conditional' in analysis['logic']:
-        if 'and_condition' in analysis['logic']:
-            encouragement_parts.append("using AND logic")
-        if 'comparison' in analysis['logic']:
-            encouragement_parts.append("comparing values")
-    
-    # Build encouragement
-    if encouragement_parts:
-        encouragement = f"Great work! You're {' and '.join(encouragement_parts)} - that's smart programming!"
-    else:
-        encouragement = "Excellent coding! You're building interactive programs!"
-    
-    # Generate context-aware suggestion using advanced analysis
-    suggestion_context = generate_context_aware_suggestion_prompts(analysis, js_code)
-    idea = f"What if you {suggestion_context['prompt_focus'].lower()}? Try combining {suggestion_context['novel_combinations'][0].replace(' + ', ' with ')}"
-    
-    # Extract blocks for the idea
-    blocks = extract_blocks_from_idea(idea, [])
-    
-    return {
-        "encouragement": encouragement,
-        "idea": idea,
-        "blocks": blocks
-    }
 
 def generate_context_aware_suggestion_prompts(analysis, js_code):
     """
@@ -908,8 +804,140 @@ def get_cache_stats():
     # Caching disabled
     return {"disabled": True}
 
-# Removed generic preloaded responses - they weren't specific enough
-# Now the AI analyzes each student's code individually for personalized feedback
+
+def get_chat_system_prompt(chat_type, js_code, context):
+    """Generate appropriate system prompt based on chat type"""
+    
+    base_prompt = (
+        "You are an enthusiastic, friendly micro:bit mentor for middle school students (ages 12-14). "
+        "You help students learn programming concepts and debug their micro:bit code. "
+        "Use encouraging, simple language that's easy to understand. "
+        "Be excited about their projects and use emojis occasionally to keep things fun! "
+        "Always reference specific parts of their code when giving advice. "
+        "Keep explanations short and clear - avoid overwhelming them with too much information at once. "
+        "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+    )
+    
+    if chat_type == "debug":
+        return base_prompt + (
+            "\n\nDEBUGGING MODE: The student is having trouble with their code. "
+            "Help them figure out what's going wrong in a fun, encouraging way! "
+            "Look for common issues like:\n"
+            "- Missing pieces or typos in their code\n"
+            "- Logic mix-ups (like using the wrong button or condition)\n"
+            "- Hardware connections (are their pins hooked up right?)\n"
+            "- Radio communication between micro:bits\n\n"
+            "Break it down into simple steps and ask them what they expected vs. what actually happened. "
+            "Remind them that debugging is totally normal - even professional programmers do it! 🐛✨\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+    
+    elif chat_type == "explain":
+        return base_prompt + (
+            "\n\nEXPLANATION MODE: The student wants to understand how their code works. "
+            "Break down their code into simple, understandable parts. Explain:\n"
+            "- What each section does\n"
+            "- How the different parts work together\n"
+            "- Why certain programming concepts are used\n"
+            "- How the micro:bit hardware interacts with the code\n\n"
+            "Use analogies when helpful. Make sure they understand the 'why' behind the code, not just the 'what'.\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+    
+    elif chat_type == "improve":
+        return base_prompt + (
+            "\n\nIMPROVEMENT MODE: The student wants to make their project even cooler! "
+            "Suggest awesome new features they can add like:\n"
+            "- New sensors (light, sound, temperature)\n"
+            "- Fun outputs (sounds, LED patterns, messages to other micro:bits)\n"
+            "- Interactive elements (buttons, gestures, touch)\n"
+            "- Making their code work better or faster\n"
+            "- Adding new behaviors and features\n\n"
+            "Get them excited about what they can build! Show them how to add to their existing code rather than starting over. "
+            "Make suggestions that are fun and achievable for their skill level! 🚀\n\n"
+            "EXAMPLE FORMAT: Start with enthusiasm, then ask what they want to add, then suggest specific ideas with line breaks between each idea.\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+    
+    elif chat_type == "learn_block":
+        block_name = context.get("block", "a block")
+        return base_prompt + (
+            f"\n\nBLOCK LEARNING MODE: The student wants to learn about {block_name}. "
+            "Provide comprehensive information including:\n"
+            "- What the block does\n"
+            "- How to use it in different situations\n"
+            "- Common parameters or settings\n"
+            "- Examples of how it works with other blocks\n"
+            "- Practical projects they could try\n\n"
+            "Make it engaging and show them how this block fits into bigger programming concepts.\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+    
+    elif chat_type == "narrative":
+        return base_prompt + (
+            "\n\nNARRATIVE ALIGNMENT MODE: The student wants their code to tell the story they have in mind! "
+            "Help them understand:\n"
+            "- What their code is actually doing right now\n"
+            "- How to change it to match their awesome story idea\n"
+            "- What new parts they might need to add\n"
+            "- How to make their micro:bit behave the way they want\n\n"
+            "Get excited about their story ideas! Help them figure out how to make their code match their creative vision. "
+            "Ask them about the cool story they're trying to tell! 🎭✨\n\n"
+            "EXAMPLE FORMAT: Start by asking about their story, then explain what the code does now, then suggest how to change it, with line breaks between each part.\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+    
+    else:  # general
+        return base_prompt + (
+            "\n\nGENERAL HELP MODE: The student has a question about their micro:bit project! "
+            "Be super helpful and encouraging. If they're asking about:\n"
+            "- How something works: Explain it simply with fun examples\n"
+            "- What to try next: Suggest cool next steps they can take\n"
+            "- Problems they're having: Help them figure it out step by step\n"
+            "- New ideas: Get excited and help them explore!\n\n"
+            "Remember - learning to code is awesome but can be tricky sometimes. Be patient and celebrate their progress! 🎉\n\n"
+            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        )
+
+
+def generate_chat_response(chat_type, user_message, js_code, context):
+    """Generate a chat response using LM Studio"""
+    try:
+        client = OpenAI(
+            base_url=LM_STUDIO_BASE_URL,
+            api_key=LM_STUDIO_API_KEY
+        )
+        
+        system_prompt = get_chat_system_prompt(chat_type, js_code, context)
+        
+        # Add context information for learn_block type
+        context_info = ""
+        if chat_type == "learn_block" and context:
+            block_name = context.get("block", "")
+            category = context.get("category", "")
+            description = context.get("description", "")
+            if block_name:
+                context_info = f"\n\nCONTEXT: The student is asking about the '{block_name}' block from the {category} category. Block description: {description}"
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"}
+        ]
+        
+        response = client.chat.completions.create(
+            model="meta-llama-3.1-8b-instruct",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"Error generating chat response: {e}")
+        return "I'm having trouble connecting right now. Please try again in a moment!"
+
+# AI analyzes each student's code individually for personalized feedback
 
 # Helper to execute the vision processor reliably (keeps code_file.js intact on errors)
 def _execute_vision_processor(image_path: str):
@@ -1021,10 +1049,6 @@ def generate_ai_suggestions(js_code):
             - blocks (list): 2-4 MakeCode block suggestions as strings
     """
     try:
-        # Check smart cache first
-        cached_response = get_cached_suggestion(js_code, "suggestion")
-        if cached_response:
-            return cached_response
         
         # Analyze the student's code for targeted suggestions
         analysis = analyze_student_code(js_code)
@@ -1038,10 +1062,9 @@ def generate_ai_suggestions(js_code):
         print(f"Suggestion context: {suggestion_context['context']} ({suggestion_context['complexity_level']})")
 
         # Initialize OpenAI client to connect to local LM Studio server
-        # LM Studio provides an OpenAI-compatible API on localhost:1234
         client = OpenAI(
-            base_url="http://localhost:1234/v1",
-            api_key="lm-studio"  # Dummy key for local LM Studio server
+            base_url=LM_STUDIO_BASE_URL,
+            api_key=LM_STUDIO_API_KEY
         )
         
         # We'll prefer function calling; keep a lightweight schema only for fallback
@@ -1339,8 +1362,6 @@ def generate_ai_suggestions(js_code):
                 result["idea"] = fallback["idea"]
                 result["blocks"] = fallback["blocks"]
 
-        # Cache the result for future similar code patterns
-        cache_suggestion(js_code, result, "suggestion")
         return result
         
     except Exception as e:
@@ -1352,121 +1373,9 @@ def generate_ai_suggestions(js_code):
             "idea": "What if you added some sound effects when you press a button and then sent a message to other devices?",
             "blocks": ["ON BUTTON A", "PLAY SOUND", "SEND STRING", "SHOW ICON"]
         }
-        # Cache the fallback too
-        cache_suggestion(js_code, fallback_response, "suggestion")
         return fallback_response
 
 
-def generate_ai_encouragement(js_code):
-    """
-    Generate only a short encouragement message based on the student's code.
-    Uses the same LM Studio local API for fast, lightweight output.
-    """
-    try:
-        # Check smart cache first
-        cached_response = get_cached_suggestion(js_code, "encouragement")
-        if cached_response:
-            return cached_response
-        
-        
-        client = OpenAI(
-            base_url="http://localhost:1234/v1",
-            api_key="lm-studio"
-        )
-
-        response_schema = {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "encouragement_response",
-                "strict": "true",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "encouragement": {"type": "string"}
-                    },
-                    "required": ["encouragement"]
-                }
-            }
-        }
-
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You are an enthusiastic micro:bit mentor for middle school students (ages 12-14). "
-                    "Give SHORT, specific encouragement (1-2 sentences max) that shows you understand their code. "
-                    "Be precise about what their code actually does: "
-                    "- pins.digitalReadPin() reads digital values (0 or 1), NOT light sensors "
-                    "- input.lightLevel() reads light sensors "
-                    "- input.temperature() reads temperature "
-                    "- input.soundLevel() reads sound "
-                    "- pins.digitalWritePin() controls outputs like LEDs or motors "
-                    "- radio.sendString() sends wireless messages to other micro:bits "
-                    "- Mention specific buttons (A, B, AB), pins (P0, P1, P2), values, and actions "
-                    "- Keep it concise and enthusiastic "
-                    "- Use proper English grammar: 'and' and 'or' (lowercase), not 'AND' or 'OR' "
-                    "Example: 'Awesome! You're using digital pin P0 and button A to control when to show a 'No' icon or send a radio message - that's smart conditional logic!' "
-                    "MICRO:BIT HARDWARE CONTEXT: The micro:bit has 3 GPIO pins (P0, P1, P2) for connecting sensors, LEDs, motors, and other components. "
-                    "Radio allows wireless communication between micro:bits within ~10m range. "
-                    "Do not include ideas or blocks yet."
-                )
-            },
-            {
-                "role": "user",
-                "content": (
-                    "CODE\n\n" f"```javascript\n{js_code}\n```"
-                )
-            }
-        ]
-
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "encourage",
-                    "description": "Return only an encouragement message.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "encouragement": {"type": "string"}
-                        },
-                        "required": ["encouragement"]
-                    }
-                }
-            }
-        ]
-
-        response = client.chat.completions.create(
-            model="meta-llama-3.1-8b-instruct",
-            messages=messages,
-            tools=tools,
-            tool_choice="required",
-            response_format=response_schema,
-            temperature=0.4,  # Increased for more engaging encouragement
-            stream=False,  # Disabled streaming for non-streaming function
-            max_tokens=60  # Reduced for shorter encouragement
-        )
-
-        msg = response.choices[0].message
-        if getattr(msg, "tool_calls", None):
-            call = msg.tool_calls[0]
-            args = call.function.arguments if hasattr(call, "function") else call.get("function", {}).get("arguments")
-            result = json.loads(args)
-        else:
-            result = json.loads(msg.content)
-
-        if isinstance(result, dict) and isinstance(result.get("encouragement"), str):
-            # Cache the result for future similar code patterns
-            cache_suggestion(js_code, result, "encouragement")
-            return result
-        fallback_response = {"encouragement": "Amazing work! You're becoming a real programmer!"}
-        cache_suggestion(js_code, fallback_response, "encouragement")
-        return fallback_response
-    except Exception as e:
-        print(f"Error generating encouragement: {e}")
-        fallback_response = {"encouragement": "Fantastic job! You're learning to code and doing great!"}
-        cache_suggestion(js_code, fallback_response, "encouragement")
-        return fallback_response
 
 
 
@@ -1592,25 +1501,10 @@ def generate_encouragement_stream():
 
         def generate():
             try:
-                # Check smart cache first
-                cached_response = get_cached_suggestion(js_code, "encouragement")
-                if cached_response:
-                    print("Using cached encouragement response")
-                    encouragement_text = cached_response.get("encouragement", "Great job on your code!")
-                    # Stream the cached response character by character
-                    for char in encouragement_text:
-                        if char == ' ':
-                            yield f"data: {json.dumps({'word': ' '})}\n\n"
-                        elif char not in ['\n', '\r', '\t']:
-                            yield f"data: {json.dumps({'word': char})}\n\n"
-                        import time
-                        time.sleep(0.025)  # Optimized delay for smooth animation
-                    yield f"data: {json.dumps({'done': True})}\n\n"
-                    return
 
                 client = OpenAI(
-                    base_url="http://localhost:1234/v1",
-                    api_key="lm-studio"
+                    base_url=LM_STUDIO_BASE_URL,
+                    api_key=LM_STUDIO_API_KEY
                 )
 
                 response_schema = {
@@ -1685,10 +1579,6 @@ def generate_encouragement_stream():
                             import time
                             time.sleep(0.025)  # Optimized delay for smooth animation
 
-                # Cache the result for future similar code patterns
-                if full_text:
-                    result = {"encouragement": full_text}
-                    cache_suggestion(js_code, result, "encouragement")
 
                 yield f"data: {json.dumps({'done': True})}\n\n"
 
@@ -1753,28 +1643,13 @@ def generate_idea_stream():
                 return cleaned
 
             try:
-                # Check smart cache first
-                cached_response = get_cached_suggestion(js_code, "idea")
-                if cached_response:
-                    print("Using cached idea response")
-                    idea_text = cached_response.get("idea", "What if you added some sound effects?")
-                    # Stream the cached response character by character
-                    for char in idea_text:
-                        if char == ' ':
-                            yield f"data: {json.dumps({'word': ' '})}\n\n"
-                        elif char not in ['\n', '\r', '\t']:
-                            yield f"data: {json.dumps({'word': char})}\n\n"
-                        import time
-                        time.sleep(0.025)  # Optimized delay for smooth animation
-                    yield f"data: {json.dumps({'done': True})}\n\n"
-                    return
 
                 # Load cached block mappings (computed once at startup)
                 available_labels, trigger_labels, action_labels, blocks_info = get_cached_block_mappings()
 
                 client = OpenAI(
-                    base_url="http://localhost:1234/v1",
-                    api_key="lm-studio"
+                    base_url=LM_STUDIO_BASE_URL,
+                    api_key=LM_STUDIO_API_KEY
                 )
 
                 # Build a brief analysis summary to guide a code-specific extension
@@ -1891,8 +1766,6 @@ def generate_idea_stream():
                         # Send a dedicated SSE event with blocks so the UI can populate "Blocks to Explore"
                         yield f"data: {json.dumps({'blocks': extracted_blocks})}\n\n"
 
-                    result = {"idea": idea_text}
-                    cache_suggestion(js_code, result, "idea")
 
                 yield f"data: {json.dumps({'done': True})}\n\n"
 
@@ -1913,6 +1786,146 @@ def generate_idea_stream():
 
     except Exception as e:
         print(f"Error generating streaming idea: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    """Handle chat requests with different conversation types"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        chat_type = data.get("type", "general")
+        user_message = data.get("message", "")
+        context = data.get("context", {})
+        
+        # Get the current generated code
+        try:
+            with open("static/code_file.js", "r") as file:
+                js_code = file.read()
+        except FileNotFoundError:
+            js_code = "// No code generated yet"
+        
+        # Generate appropriate response based on chat type
+        response = generate_chat_response(chat_type, user_message, js_code, context)
+        
+        return jsonify({
+            "success": True,
+            "response": response
+        })
+        
+    except Exception as e:
+        print(f"Error in chat endpoint: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/chat_stream", methods=["POST"])
+def chat_stream():
+    """Handle streaming chat requests"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        chat_type = data.get("type", "general")
+        user_message = data.get("message", "")
+        context = data.get("context", {})
+        
+        # Get the current generated code
+        try:
+            with open("static/code_file.js", "r") as file:
+                js_code = file.read()
+        except FileNotFoundError:
+            js_code = "// No code generated yet"
+        
+        def generate():
+            try:
+                client = OpenAI(
+                    base_url=LM_STUDIO_BASE_URL,
+                    api_key=LM_STUDIO_API_KEY
+                )
+                
+                # Get the appropriate system prompt based on chat type
+                system_prompt = get_chat_system_prompt(chat_type, js_code, context)
+                
+                # Add context information for learn_block type
+                context_info = ""
+                if chat_type == "learn_block" and context:
+                    block_name = context.get("block", "")
+                    category = context.get("category", "")
+                    description = context.get("description", "")
+                    if block_name:
+                        context_info = f"\n\nCONTEXT: The student is asking about the '{block_name}' block from the {category} category. Block description: {description}"
+                
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"}
+                ]
+                
+                response = client.chat.completions.create(
+                    model="meta-llama-3.1-8b-instruct",
+                    messages=messages,
+                    temperature=0.7,
+                    stream=True,
+                    max_tokens=500
+                )
+                
+                # Stream the response character by character
+                for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        
+                        # Stream each character, converting line breaks to special markers
+                        for char in content:
+                            if char == ' ':
+                                yield f"data: {json.dumps({'word': ' '})}\n\n"
+                            elif char == '\n':
+                                yield f"data: {json.dumps({'word': '<br>'})}\n\n"
+                            elif char not in ['\r', '\t']:
+                                yield f"data: {json.dumps({'word': char})}\n\n"
+                            import time
+                            time.sleep(0.025)  # Smooth animation timing
+                
+                yield f"data: {json.dumps({'done': True})}\n\n"
+                
+            except Exception as e:
+                print(f"Error in streaming chat: {e}")
+                # Fallback response
+                fallback_text = "I'm having trouble connecting right now. Please try again in a moment!"
+                for char in fallback_text:
+                    if char == ' ':
+                        yield f"data: {json.dumps({'word': ' '})}\n\n"
+                    elif char not in ['\n', '\r', '\t']:
+                        yield f"data: {json.dumps({'word': char})}\n\n"
+                    import time
+                    time.sleep(0.025)
+                yield f"data: {json.dumps({'done': True})}\n\n"
+        
+        return app.response_class(generate(), mimetype='text/event-stream')
+        
+    except Exception as e:
+        print(f"Error in chat_stream endpoint: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route("/clear_code", methods=["POST"])
+def clear_code():
+    """Clear the generated code file"""
+    try:
+        _write_placeholder_code()
+        return jsonify({"success": True})
+    except Exception as e:
         return jsonify({
             "success": False,
             "error": str(e)

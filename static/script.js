@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var input = document.getElementById('chat-text');
     var messages = document.getElementById('chat-messages');
     var startupOptionsShown = false;
+    
+    // Reset code state when page loads
+    resetCodeState();
 
     function openDrawer() {
         if (!drawer) return;
@@ -76,18 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
         messages.scrollTop = messages.scrollHeight;
     }
 
-    // Lightweight canned reply for mock chat drawer
-    function mockAiReply() {
-        var hints = [
-            "Cool! Tell me which buttons, pins, or sounds you want to use.",
-            "Awesome idea. Do you want to add lights, sounds, or radio messages?",
-            "Nice! Should it react to light, temperature, or a button press?",
-            "Great! We can start simple. What should happen first?",
-            "Got it. Do you want it to send a message to another micro:bit?"
-        ];
-        var msg = hints[Math.floor(Math.random() * hints.length)];
-        setTimeout(function(){ appendMessage('ai', msg); }, 600);
-    }
 
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -96,7 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!text) return;
             appendMessage('user', text);
             if (input) input.value = '';
-            mockAiReply();
+            
+            // Handle free-form chat input (for when not using specific chat options)
+            // This could be extended to handle general questions in the future
+            appendMessage('ai', 'I\'m here to help! Please select one of the chat options above to get started, or use "Help me learn a new block" to explore specific blocks.');
         });
     }
 
@@ -135,7 +129,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 wrap.remove();
                 // Append the chosen text as a regular user message
                 appendMessage('user', opt);
-                mockAiReply();
+                
+                // Handle specific chat options
+                if (opt === 'Help me learn a new block') {
+                    handleBlockLearning();
+                } else if (opt === "My code isn't working") {
+                    handleDebugChat();
+                } else if (opt === 'I want to add a new feature') {
+                    handleImproveChat();
+                } else if (opt === 'My code doesn\'t match my story') {
+                    handleNarrativeAlignmentChat();
+                }
             });
             bubble.addEventListener('keydown', function(ev){
                 if (ev.key === 'Enter' || ev.key === ' ') {
@@ -152,6 +156,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         messages.appendChild(wrap);
         messages.scrollTop = messages.scrollHeight;
+    }
+    // Expose helpers for resetting chat startup options
+    window.showChatStartupOptions = showChatStartupOptions;
+    window.resetChatStartupOptions = function() {
+        // Allow options to render again and insert them
+        startupOptionsShown = false;
+        showChatStartupOptions();
+    };
+
+    // Ensure chat resets as soon as a new upload is initiated
+    var imageInput = document.getElementById('image-input');
+    if (imageInput) {
+        imageInput.addEventListener('click', function() {
+            clearChatMessages();
+        });
     }
 });
 
@@ -220,23 +239,12 @@ function showFeedbackButton() {
     }, 600); // Delay to let code generation finish
 }
 
-// Show encouragement popup immediately with empty content
+// Show encouragement popup immediately with empty content (delegates to openInlineEncouragement)
 function showEncouragementPopup() {
-    const encouragement = document.getElementById('inline-encouragement');
-    const codeBox = document.getElementById('code-box');
     const encouragementText = document.getElementById('inline-encouragement-text');
-    
-    if (!encouragement || !codeBox || !encouragementText) return;
-    
-    // Set empty content initially
+    if (!encouragementText) return;
     encouragementText.innerHTML = '<h3>🎉 Getting feedback...</h3>';
-    
-    // Show the encouragement card immediately
-    encouragement.classList.remove('hidden');
-    encouragement.classList.add('visible');
-    
-    // Add class to code box to make it smaller and move left
-    codeBox.classList.add('with-encouragement');
+    openInlineEncouragement();
 }
 
 // Get Feedback function - only generates encouragement when button is clicked
@@ -539,6 +547,9 @@ function takePicture() {
     var videoEl = document.getElementById('camera-feed');
     if (!videoEl) { console.error('Video element not found!'); return; }
 
+    // Clear chat when new image is captured
+    clearChatMessages();
+
     var canvas = document.createElement('canvas');
     canvas.width = videoEl.videoWidth;
     canvas.height = videoEl.videoHeight;
@@ -582,10 +593,49 @@ function dataURItoBlob(dataURI) {
 }
 
 
+function clearChatMessages() {
+    var messages = document.getElementById('chat-messages');
+    if (messages) {
+        // Keep only the initial AI message
+        var initialMessage = messages.querySelector('.chat-msg.ai');
+        messages.innerHTML = '';
+        if (initialMessage) {
+            messages.appendChild(initialMessage);
+        }
+        // Repopulate initial quick-start options
+        if (typeof window.resetChatStartupOptions === 'function') {
+            window.resetChatStartupOptions();
+        }
+    }
+}
+
+// Function to reset code state
+function resetCodeState() {
+    var contentElement = document.getElementById('content');
+    if (contentElement) {
+        contentElement.textContent = 'Your code will appear here (press Generate Code button).';
+    }
+    
+    // Also clear the backend code file
+    fetch('/clear_code', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    }).catch(error => {
+        console.log('Error clearing backend code:', error);
+    });
+    
+    console.log('Code state reset - now has no code');
+}
+
 function uploadImage() {
     var input = document.getElementById('image-input');
     var file = input.files[0];
     if (file) {
+        // Clear chat when new image is uploaded
+        clearChatMessages();
+        
         var reader = new FileReader();
         reader.onload = function(e) {
             uploadedImage.src = e.target.result;
@@ -607,6 +657,9 @@ function uploadImage() {
             }
         };
         xhr.send(formData);
+
+        // Reset the file input so selecting the same file again triggers change
+        try { input.value = ''; } catch (e) { /* no-op */ }
     }
 }
 
@@ -703,3 +756,299 @@ function closeCopyNotice() {
     card.classList.add('pop-out');
     setTimeout(function(){ overlay.classList.add('hidden'); }, 400);
 }
+
+// Chat functionality for different help types
+function hasExistingCode() {
+    // Check if there's generated code content
+    var contentElement = document.getElementById('content');
+    if (!contentElement) return false;
+    
+    var codeText = contentElement.textContent || contentElement.innerText;
+    
+    // Check if it's actual generated code (not placeholder text)
+    var isPlaceholder = codeText.trim() === 'Your code will appear here (press Generate Code button).' ||
+                       codeText.trim() === '' ||
+                       codeText.includes('// code will appear here after processing an image') ||
+                       codeText.includes('Your code will appear here');
+
+    var hasActualCode = codeText.length > 50 && 
+                        (codeText.includes('input.') || 
+                         codeText.includes('basic.') || 
+                         codeText.includes('pins.') || 
+                         codeText.includes('radio.') ||
+                         codeText.includes('music.') ||
+                         codeText.includes('led.') ||
+                         codeText.includes('onButtonPressed') ||
+                         codeText.includes('onGesture') ||
+                         codeText.includes('forever') ||
+                         codeText.includes('if (') ||
+                         codeText.includes('showString') ||
+                         codeText.includes('showIcon'));
+
+    return !isPlaceholder && hasActualCode;
+}
+
+// Alternative async check that verifies with backend
+function hasExistingCodeAsync() {
+    return new Promise((resolve) => {
+        fetch('/get_js_content')
+            .then(response => response.text())
+            .then(code => {
+                var isPlaceholder = code.includes('// code will appear here after processing an image') ||
+                                  code.includes('Your code will appear here') ||
+                                  code.trim() === '' ||
+                                  code.length < 50;
+                
+                var hasActualCode = code.length > 50 && 
+                                  (code.includes('input.') || 
+                                   code.includes('basic.') || 
+                                   code.includes('pins.') || 
+                                   code.includes('radio.') ||
+                                   code.includes('music.') ||
+                                   code.includes('led.') ||
+                                   code.includes('onButtonPressed') ||
+                                   code.includes('onGesture') ||
+                                   code.includes('forever') ||
+                                   code.includes('if (') ||
+                                   code.includes('showString') ||
+                                   code.includes('showIcon'));
+                
+                resolve(!isPlaceholder && hasActualCode);
+            })
+            .catch((error) => {
+                console.log('Error checking code:', error);
+                // If fetch fails, fall back to frontend check
+                resolve(hasExistingCode());
+            });
+    });
+}
+
+function showNoCodeMessage(chatType) {
+    var messages = document.getElementById('chat-messages');
+    if (!messages) return;
+    
+    var noCodeMessages = {
+        debug: 'Hmm... I don\'t see any of your code yet! 😊 Upload a picture of your code first, then I\'ll be able to help you figure out what\'s going wrong!',
+        improve: 'Whoa there! 🛑 I\'d love to help you add cool features, but I need to see your code first! Take a picture of your project and then we can make it even more awesome!',
+        narrative: 'Hey there! 🎨 I\'m excited to help you make your code match your story, but I need to see what you\'ve built so far! Upload a picture of your code and let\'s create something amazing together!'
+    };
+    
+    var message = noCodeMessages[chatType] || 'Hmm... I don\'t see any of your code yet! Upload a picture of your code and I\'ll be there to help! 💪';
+    
+    // Create AI response message
+    var aiMessage = document.createElement('div');
+    aiMessage.className = 'chat-msg ai';
+    
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+    
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.classList.add('streaming-response');
+    
+    aiMessage.appendChild(avatar);
+    aiMessage.appendChild(bubble);
+    messages.appendChild(aiMessage);
+    
+    // Stream the message
+    streamContent(bubble, message);
+    
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function handleDebugChat() {
+    hasExistingCodeAsync().then(hasCode => {
+        if (!hasCode) {
+            showNoCodeMessage('debug');
+            return;
+        }
+        startChatConversation('debug', 'Oh no! I see you\'re having trouble with your code! 😅\n\nDon\'t worry - debugging is totally normal when you\'re learning to code.\n\nCan you tell me what\'s happening? Is it not doing what you expected, or is there an error?');
+    });
+}
+
+function handleImproveChat() {
+    hasExistingCodeAsync().then(hasCode => {
+        if (!hasCode) {
+            showNoCodeMessage('improve');
+            return;
+        }
+        startChatConversation('improve', 'Awesome! I love that you want to make your project even cooler! 🚀\n\nWhat kind of amazing new feature are you thinking about?\n\nMaybe add some sensors, make it talk to other micro:bits, or create some fun sounds and lights?');
+    });
+}
+
+function handleNarrativeAlignmentChat() {
+    hasExistingCodeAsync().then(hasCode => {
+        if (!hasCode) {
+            showNoCodeMessage('narrative');
+            return;
+        }
+        startChatConversation('narrative', 'I totally get it! Sometimes our code doesn\'t quite match the awesome story we have in our heads! 🎭\n\nLet me help you figure out how to make your code tell the story you want.\n\nWhat kind of story or cool behavior are you trying to create?');
+    });
+}
+
+function startChatConversation(chatType, initialMessage, context = {}) {
+    var messages = document.getElementById('chat-messages');
+    if (!messages) return;
+    
+    // Create AI response message
+    var aiMessage = document.createElement('div');
+    aiMessage.className = 'chat-msg ai';
+    
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+    
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.classList.add('streaming-response');
+    
+    aiMessage.appendChild(avatar);
+    aiMessage.appendChild(bubble);
+    messages.appendChild(aiMessage);
+    
+    // Stream the initial message
+    streamContent(bubble, initialMessage);
+    
+    // Enable chat input for this conversation
+    var chatInput = document.getElementById('chat-text');
+    var chatForm = document.getElementById('chat-input-form');
+    if (chatInput && chatForm) {
+        chatInput.placeholder = 'Describe your question or problem...';
+        chatInput.disabled = false;
+        chatForm.onsubmit = function(e) {
+            e.preventDefault();
+            var userMessage = chatInput.value.trim();
+            if (userMessage) {
+                sendChatMessage(userMessage, chatType, context);
+                chatInput.value = '';
+            }
+        };
+    }
+    
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function sendChatMessage(message, chatType, context = {}) {
+    var messages = document.getElementById('chat-messages');
+    if (!messages) return;
+    
+    // Add user message
+    appendMessage('user', message);
+    
+    // Create AI response message
+    var aiMessage = document.createElement('div');
+    aiMessage.className = 'chat-msg ai';
+    
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+    
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.classList.add('streaming-response');
+    
+    aiMessage.appendChild(avatar);
+    aiMessage.appendChild(bubble);
+    messages.appendChild(aiMessage);
+    
+    // Disable input while processing
+    var chatInput = document.getElementById('chat-text');
+    if (chatInput) {
+        chatInput.disabled = true;
+        chatInput.placeholder = 'Thinking...';
+    }
+    
+    // Send request to backend
+    fetch('/chat_stream', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: chatType,
+            message: message,
+            context: context
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.body.getReader();
+    })
+    .then(reader => {
+        var decoder = new TextDecoder();
+        var buffer = '';
+        var bubble = aiMessage.querySelector('.bubble');
+        
+        function readStream() {
+            return reader.read().then(function(result) {
+                if (result.done) {
+                    // Re-enable input when done
+                    var chatInput = document.getElementById('chat-text');
+                    if (chatInput) {
+                        chatInput.disabled = false;
+                        chatInput.placeholder = 'Ask another question...';
+                        chatInput.focus();
+                    }
+                    return;
+                }
+                
+                buffer += decoder.decode(result.value, { stream: true });
+                var lines = buffer.split('\n');
+                buffer = lines.pop(); // Keep incomplete line in buffer
+                
+                lines.forEach(function(line) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            var data = JSON.parse(line.slice(6));
+                            if (data.word && bubble) {
+                                if (data.word === '<br>') {
+                                    bubble.innerHTML += '<br>';
+                                } else {
+                                    bubble.innerHTML += data.word;
+                                }
+                                messages.scrollTop = messages.scrollHeight;
+                            }
+                        } catch (e) {
+                            // Ignore malformed JSON
+                        }
+                    }
+                });
+                
+                return readStream();
+            });
+        }
+        
+        return readStream();
+    })
+    .catch(error => {
+        console.error('Chat error:', error);
+        
+        // Create error message bubble
+        var aiMessage = document.createElement('div');
+        aiMessage.className = 'chat-msg ai';
+        
+        var avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
+        
+        var bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = 'Sorry, I\'m having trouble connecting right now. Please try again in a moment!';
+        
+        aiMessage.appendChild(avatar);
+        aiMessage.appendChild(bubble);
+        messages.appendChild(aiMessage);
+        
+        // Re-enable input
+        var chatInput = document.getElementById('chat-text');
+        if (chatInput) {
+            chatInput.disabled = false;
+            chatInput.placeholder = 'Try again...';
+        }
+    });
+}
+
+// streamContent is defined in block_learning.js; use that single implementation

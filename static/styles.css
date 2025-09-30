@@ -637,20 +637,6 @@ pre code {
   }
 }
 
-/* Block Color Scheme Utility Classes */
-.color-red { color: #D32F2F; }
-.color-orange { color: #FFAD4D; }
-.color-green { color: #4CAF50; }
-.color-blue { color: #007BFF; }
-.color-dark-blue { color: #0056B3; }
-.color-purple { color: #9400D3; }
-
-.bg-red { background-color: #D32F2F; color: #ffffff; }
-.bg-orange { background-color: #FFAD4D; color: #ffffff; }
-.bg-green { background-color: #4CAF50; color: #ffffff; }
-.bg-blue { background-color: #007BFF; color: #ffffff; }
-.bg-dark-blue { background-color: #0056B3; color: #ffffff; }
-.bg-purple { background-color: #9400D3; color: #ffffff; }
 
 /* Suggestion/Idea popup styling - Red and Orange theme */
 #suggestion-card .modal-hero {
@@ -675,22 +661,6 @@ pre code {
   background-color: #D32F2F;
 }
 
-/* Sour Gummy Font Classes */
-.sour-gummy-regular {
-  font-family: "Sour Gummy", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
-
-.sour-gummy-bold {
-  font-family: "Sour Gummy", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: normal;
-  font-variation-settings: "wdth" 100;
-}
 
 /* Apply Sour Gummy font to specific elements, excluding icons */
 h1, h2, h3, h4, h5, h6, p, span, div, button, input, label, .modal-body, .modal-actions, .button-group {
@@ -909,6 +879,89 @@ i, .fas, .fa, .fa-solid, .fa-brands, .fa-regular, [class*="fa-"], [class*="fas"]
 }
 
 .chat-input .send:hover { background: #7B1FA2; }
+
+/* Block Learning System Styles - Uses existing chat option styling */
+.block-learning-category-options .options-bubbles {
+    max-width: 95%; /* Make category options wider than default 85% */
+    align-items: flex-end !important; /* Force right alignment */
+}
+
+.block-learning-category-options .bubble {
+    min-width: 120px; /* Ensure buttons have minimum width */
+    text-align: center; /* Center text within the wider buttons */
+}
+
+/* Ensure user messages in block learning are right-aligned */
+.block-learning-category-options {
+    justify-content: flex-end !important;
+    display: flex !important;
+    align-items: flex-end !important;
+}
+
+/* Streaming animation for block learning responses */
+.streaming-response {
+    position: relative;
+}
+
+/* Removed cursor to prevent extra spacing issues */
+
+/* Enhanced animations for block learning buttons */
+.bubble.chat-option {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bubble.chat-option:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bubble.chat-option:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Code highlighting in block descriptions */
+.chat-msg .bubble pre {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px 0;
+    font-size: 12px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.chat-msg .bubble code {
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.chat-msg .bubble strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.chat-msg .bubble em {
+    font-style: italic;
+}
+
+.chat-msg .bubble h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 8px 0 4px 0;
+    color: #333;
+}
+
+.chat-msg .bubble h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 6px 0 3px 0;
+    color: #333;
+}
 
 /* Small screens: slightly narrower drawer */
 @media (max-width: 480px) {
