@@ -20,16 +20,6 @@ body {
   min-height: 100vh; /* Fill viewport height for vertical centering */
 }
 
-/* Suggestion modal styles */
-.side-panel {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-.side-panel.hidden { display: none; }
-
 .overlay {
   position: fixed;
   inset: 0;
@@ -636,31 +626,6 @@ pre code {
     opacity: 1;
   }
 }
-
-
-/* Suggestion/Idea popup styling - Red and Orange theme */
-#suggestion-card .modal-hero {
-  background: linear-gradient(135deg, #D32F2F, #FFAD4D);
-}
-
-#suggestion-card .badge {
-  color: #D32F2F;
-}
-
-#suggestion-card .modal-body h2 {
-  color: #D32F2F;
-}
-
-#suggestion-card .modal-actions .primary {
-  background-color: #FFAD4D;
-  color: #ffffff;
-  transition: background-color 0.3s ease;
-}
-
-#suggestion-card .modal-actions .primary:hover {
-  background-color: #D32F2F;
-}
-
 
 /* Apply Sour Gummy font to specific elements, excluding icons */
 h1, h2, h3, h4, h5, h6, p, span, div, button, input, label, .modal-body, .modal-actions, .button-group {

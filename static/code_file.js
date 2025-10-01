@@ -1,3 +1,1 @@
-if (pins.digitalReadPin(DigitalPin.P0) < 1000 && input.buttonIsPressed(Button.A)) {
-    basic.showIcon(IconNames.No)
-}
+// code will appear here after processing an image

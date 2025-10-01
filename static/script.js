@@ -1,5 +1,8 @@
 hljs.highlightAll();
 
+// Global variables for chat conversation history
+let conversationHistory = [];
+
 var clipboard = new ClipboardJS('#copy-button', {
     text: function() {
         return document.getElementById('content').textContent;
@@ -79,18 +82,18 @@ document.addEventListener('DOMContentLoaded', function() {
         messages.scrollTop = messages.scrollHeight;
     }
 
+    // Expose appendMessage globally for use outside this closure
+    window.appendMessage = appendMessage;
+
 
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             var text = (input && input.value || '').trim();
             if (!text) return;
-            appendMessage('user', text);
             if (input) input.value = '';
-            
-            // Handle free-form chat input (for when not using specific chat options)
-            // This could be extended to handle general questions in the future
-            appendMessage('ai', 'I\'m here to help! Please select one of the chat options above to get started, or use "Help me learn a new block" to explore specific blocks.');
+            // Send free-form chat to backend using general chat type
+            sendChatMessage(text, 'general', {});
         });
     }
 
@@ -209,8 +212,6 @@ function generateCode() {
                 // Show feedback button with animation
                 showFeedbackButton();
 
-                // Generate AI responses sequentially - only suggestions, no automatic encouragement
-                generateStreamingIdea();
             } else if (xhr.readyState == 4 && xhr.status === 400) {
                 // No image uploaded for this session
                 contentElement.textContent = 'Please upload or capture an image first.';
@@ -280,6 +281,8 @@ async function generateStreamingEncouragement() {
         let buffer = '';
         let currentText = '';
         let hasStarted = false;
+        let dotsShownAt = 0;
+        const dotsMinMs = 250;
         
         while (true) {
             const { done, value } = await reader.read();
@@ -298,13 +301,35 @@ async function generateStreamingEncouragement() {
                             // Show popup only when first word arrives
                             if (!hasStarted) {
                                 openInlineEncouragement();
+                                // insert loading dots initially
+                                const t = document.getElementById('inline-encouragement-text');
+                                if (t && !t.dataset.loadingInit) {
+                                    t.dataset.loadingInit = '1';
+                                    t.innerHTML = '<h3>🎉 <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></h3>';
+                                    console.log('Added loading dots to encouragement popup');
+                                }
                                 hasStarted = true;
+                                dotsShownAt = Date.now();
                             }
                             
                             // Add word with proper spacing
                             currentText += data.word;
-                            document.getElementById('inline-encouragement-text').innerHTML = 
-                                `<h3>🎉 ${currentText}</h3>`;
+                            const t2 = document.getElementById('inline-encouragement-text');
+                            if (t2 && t2.dataset.loadingInit === '1') {
+                                const elapsed = Date.now() - dotsShownAt;
+                                if (elapsed < dotsMinMs) {
+                                    setTimeout(function(){
+                                        t2.dataset.loadingInit = '0';
+                                        t2.innerHTML = `<h3>🎉 ${currentText}</h3>`;
+                                    }, dotsMinMs - elapsed);
+                                } else {
+                                    t2.dataset.loadingInit = '0';
+                                    t2.innerHTML = `<h3>🎉 ${currentText}</h3>`;
+                                }
+                            } else {
+                                document.getElementById('inline-encouragement-text').innerHTML = 
+                                    `<h3>🎉 ${currentText}</h3>`;
+                            }
                         }
                         
                         if (data.done) {
@@ -323,131 +348,6 @@ async function generateStreamingEncouragement() {
     }
 }
 
-// Generate streaming idea word by word
-async function generateStreamingIdea() {
-    try {
-        const response = await fetch('/generate_idea_stream', { method: 'POST' });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        
-        let buffer = '';
-        let currentText = '';
-        let hasStarted = false;
-        let streamedBlocks = [];
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value, { stream: true });
-            buffer += chunk;
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); // Keep incomplete line in buffer
-            
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        
-                        // Server may stream blocks separately for the UI
-                        if (Array.isArray(data.blocks)) {
-                            streamedBlocks = data.blocks;
-                            const blocksHtml = streamedBlocks.map(block => `<li><code>${block}</code></li>`).join('');
-                            const base = document.getElementById('suggestion-text').innerHTML;
-                            document.getElementById('suggestion-text').innerHTML =
-                                `${base}
-                                 <p><strong>🧩 Blocks to Explore:</strong></p>
-                                 <ul>${blocksHtml}</ul>`;
-                        }
-
-                        if (data.word) {
-                            // Show popup only when first word arrives
-                            if (!hasStarted) {
-                                openSuggestion();
-                                hasStarted = true;
-                            }
-                            
-                            // Add word with proper spacing
-                            currentText += data.word;
-                            document.getElementById('suggestion-text').innerHTML = 
-                                `<p><strong>💡 Idea to Try:</strong> ${currentText}</p>`;
-                        }
-                        
-                        if (data.done) {
-                            // Finalize idea text with a light grammar tidy
-                            currentText = tidyIdeaSentence(currentText);
-                            document.getElementById('suggestion-text').innerHTML = 
-                                `<p><strong>💡 Idea to Try:</strong> ${currentText}</p>`;
-
-                            // If no streamed blocks, extract from final text as fallback
-                            const blocks = streamedBlocks.length ? streamedBlocks : extractBlocksFromIdea(currentText);
-                            if (blocks.length > 0) {
-                                const blocksHtml = blocks.map(block => `<li><code>${block}</code></li>`).join('');
-                                document.getElementById('suggestion-text').innerHTML = 
-                                    `<p><strong>💡 Idea to Try:</strong> ${currentText}</p>
-                                     <p><strong>🧩 Blocks to Explore:</strong></p>
-                                     <ul>${blocksHtml}</ul>`;
-                            }
-                            return; // Streaming complete
-                        }
-                    } catch (e) {
-                        console.error('Error parsing streaming data:', e, 'Line:', line);
-                    }
-                }
-            }
-        }
-    } catch (e) {
-        console.error('Streaming idea failed:', e);
-        // Fallback to regular suggestions
-        showSuggestions({
-            idea: "What if you added some sound effects when you press a button and sent a message to other devices?",
-            blocks: ["ON BUTTON A", "PLAY SOUND", "SEND STRING", "SHOW ICON"]
-        });
-    }
-}
-
-// Extract block labels from idea text (parenthesized text)
-function extractBlocksFromIdea(ideaText) {
-    const blocks = [];
-    const regex = /\(([^)]+)\)/g;
-    let match;
-    
-    // Valid block patterns (all caps, no numbers, no quotes)
-    const validBlockPattern = /^[A-Z\s]+$/;
-    
-    while ((match = regex.exec(ideaText)) !== null) {
-        const block = match[1].trim();
-        // Only include valid block names (all caps, no numbers, no quotes)
-        if (validBlockPattern.test(block) && block.length > 2) {
-            blocks.push(block);
-        }
-    }
-    return blocks;
-}
-
-// Light grammar cleanup for streamed idea text (post-processing)
-function tidyIdeaSentence(text) {
-    if (!text) return text;
-    let t = text;
-    // Normalize whitespace
-    t = t.replace(/\s+/g, ' ').trim();
-    // Remove leftover unmatched parentheses if any
-    t = t.replace(/\([^)]*$/g, '').trim();
-    // Common fixes
-    t = t.replace(/\bwhen you press and read from pin\b/i, 'when you press and the value from pin');
-    t = t.replace(/\bwhen you press and the read from pin\b/i, 'when you press and the value from pin');
-    t = t.replace(/\bshowed a string\b/i, 'showed a string');
-    // Ensure it starts with a capital and ends with a question mark
-    t = t.charAt(0).toUpperCase() + t.slice(1);
-    if (!/[?!.]$/.test(t)) t += '?';
-    return t;
-}
-
 // Show encouragement with improved animation
 function showEncouragement(encouragementText) {
     const formatted = `<h3>🎉 ${encouragementText}</h3>`;
@@ -457,19 +357,7 @@ function showEncouragement(encouragementText) {
 
 
 
-// Show suggestions with improved formatting
-function showSuggestions(suggestions) {
-    const formattedText = `
-        <p><strong>💡 Idea to Try:</strong> ${suggestions.idea}</p>
-        <p><strong>🧩 Blocks to Explore:</strong></p>
-        <ul>
-            ${suggestions.blocks.map(block => `<li><code>${block}</code></li>`).join('')}
-        </ul>
-    `;
-    
-    document.getElementById('suggestion-text').innerHTML = formattedText;
-    openSuggestion();
-}
+// Suggestions removed
 
 
 
@@ -616,6 +504,9 @@ function resetCodeState() {
         contentElement.textContent = 'Your code will appear here (press Generate Code button).';
     }
     
+    // Clear conversation history when resetting
+    conversationHistory = [];
+    
     // Also clear the backend code file
     fetch('/clear_code', {
         method: 'POST',
@@ -679,28 +570,7 @@ function downloadCode() {
     URL.revokeObjectURL(url);
 }
 
-// Suggestion modal controls
-function openSuggestion() {
-    var panel = document.getElementById('suggestion-panel');
-    var card = document.getElementById('suggestion-card');
-    if (!panel || !card) return;
-    panel.classList.remove('hidden');
-    // Force reflow so the next animation applies reliably
-    void card.offsetWidth;
-    card.classList.remove('slide-out-right');
-    card.classList.add('slide-in-right');
-}
-
-function closeSuggestion() {
-    var panel = document.getElementById('suggestion-panel');
-    var card = document.getElementById('suggestion-card');
-    if (!panel || !card) return;
-    card.classList.remove('slide-in-right');
-    // Force reflow to restart animation reliably
-    void card.offsetWidth;
-    card.classList.add('slide-out-right');
-    setTimeout(function(){ panel.classList.add('hidden'); }, 380);
-}
+// Suggestion modal controls removed
 
 // Inline encouragement controls
 function openInlineEncouragement() {
@@ -846,6 +716,9 @@ function showNoCodeMessage(chatType) {
     var bubble = document.createElement('div');
     bubble.className = 'bubble';
     bubble.classList.add('streaming-response');
+    // Insert animated loading dots while waiting for stream
+    bubble.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+    console.log('Added loading dots to chat bubble');
     
     aiMessage.appendChild(avatar);
     aiMessage.appendChild(bubble);
@@ -934,7 +807,9 @@ function sendChatMessage(message, chatType, context = {}) {
     if (!messages) return;
     
     // Add user message
-    appendMessage('user', message);
+    if (typeof window.appendMessage === 'function') {
+        window.appendMessage('user', message);
+    }
     
     // Create AI response message
     var aiMessage = document.createElement('div');
@@ -947,10 +822,15 @@ function sendChatMessage(message, chatType, context = {}) {
     var bubble = document.createElement('div');
     bubble.className = 'bubble';
     bubble.classList.add('streaming-response');
+    // Insert animated loading dots while waiting for stream
+    bubble.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
     
     aiMessage.appendChild(avatar);
     aiMessage.appendChild(bubble);
     messages.appendChild(aiMessage);
+    
+    // Scroll to show the loading dots
+    messages.scrollTop = messages.scrollHeight;
     
     // Disable input while processing
     var chatInput = document.getElementById('chat-text');
@@ -958,6 +838,12 @@ function sendChatMessage(message, chatType, context = {}) {
         chatInput.disabled = true;
         chatInput.placeholder = 'Thinking...';
     }
+    
+    // Add user message to conversation history
+    conversationHistory.push({
+        role: "user",
+        content: message
+    });
     
     // Send request to backend
     fetch('/chat_stream', {
@@ -968,7 +854,8 @@ function sendChatMessage(message, chatType, context = {}) {
         body: JSON.stringify({
             type: chatType,
             message: message,
-            context: context
+            context: context,
+            conversation_history: conversationHistory
         })
     })
     .then(response => {
@@ -981,10 +868,24 @@ function sendChatMessage(message, chatType, context = {}) {
         var decoder = new TextDecoder();
         var buffer = '';
         var bubble = aiMessage.querySelector('.bubble');
+        var started = false;
+        var bufferedContent = '';
+        var dotsShownAt = Date.now();
+        var dotsMinMs = 500; // Increased to 500ms to ensure dots are always visible
+        var dotsRemoved = false;
         
         function readStream() {
             return reader.read().then(function(result) {
                 if (result.done) {
+                    // Add AI response to conversation history
+                    var aiResponse = bubble.textContent || bubble.innerText;
+                    if (aiResponse) {
+                        conversationHistory.push({
+                            role: "assistant",
+                            content: aiResponse
+                        });
+                    }
+                    
                     // Re-enable input when done
                     var chatInput = document.getElementById('chat-text');
                     if (chatInput) {
@@ -1004,12 +905,30 @@ function sendChatMessage(message, chatType, context = {}) {
                         try {
                             var data = JSON.parse(line.slice(6));
                             if (data.word && bubble) {
-                                if (data.word === '<br>') {
-                                    bubble.innerHTML += '<br>';
-                                } else {
-                                    bubble.innerHTML += data.word;
+                                // On first token, start buffering and set up dots removal
+                                if (!started) {
+                                    started = true;
+                                    setTimeout(() => {
+                                        bubble.innerHTML = bufferedContent; // Show all buffered content
+                                        formatCodeBlocks(bubble);
+                                        messages.scrollTop = messages.scrollHeight;
+                                        dotsRemoved = true;
+                                    }, dotsMinMs);
                                 }
-                                messages.scrollTop = messages.scrollHeight;
+                                
+                                // Buffer content until dots are removed
+                                if (!dotsRemoved) {
+                                    bufferedContent += (data.word === '<br>' ? '\n' : data.word);
+                                } else {
+                                    // After dots are removed, stream normally
+                                    if (data.word === '<br>') {
+                                        bubble.innerHTML += '<br>';
+                                    } else {
+                                        bubble.innerHTML += data.word;
+                                    }
+                                    formatCodeBlocks(bubble);
+                                    messages.scrollTop = messages.scrollHeight;
+                                }
                             }
                         } catch (e) {
                             // Ignore malformed JSON
@@ -1049,6 +968,23 @@ function sendChatMessage(message, chatType, context = {}) {
             chatInput.placeholder = 'Try again...';
         }
     });
+}
+
+// Format code blocks in chat responses
+function formatCodeBlocks(element) {
+    if (!element) return;
+    
+    var content = element.innerHTML;
+    
+    // Find and format code blocks (```javascript ... ```)
+    content = content.replace(/```javascript\s*([\s\S]*?)```/g, function(match, code) {
+        return '<pre><code class="javascript">' + code.trim() + '</code></pre>';
+    });
+    
+    // Find and format inline code (`code`)
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    element.innerHTML = content;
 }
 
 // streamContent is defined in block_learning.js; use that single implementation

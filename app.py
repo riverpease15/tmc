@@ -808,14 +808,63 @@ def get_cache_stats():
 def get_chat_system_prompt(chat_type, js_code, context):
     """Generate appropriate system prompt based on chat type"""
     
+    # Load a compact allowlist of block names (not full JSON) to guide the model
+    allowed_blocks_line = ""
+    allowed_sounds_line = ""
+    allowed_icons_line = ""
+    try:
+        with open("static/blocks_map.json", "r") as f:
+            blocks_map = json.load(f)
+        # Collect category names
+        def names(section):
+            return list(blocks_map.get(section, {}).keys())
+        categories = {
+            "Events": names("events"),
+            "Basic": names("basic"),
+            "Input": names("input"),
+            "Music": names("music"),
+            "Radio": names("radio"),
+            "Logic": names("logic"),
+            "Variables": names("variables"),
+            "Loops": names("loops"),
+        }
+        # Build a compact single-line allowlist by categories
+        parts = []
+        for cat, lst in categories.items():
+            if lst:
+                quoted = ", ".join([f"'{n}'" for n in lst])
+                parts.append(f"{cat}: {quoted}")
+        if parts:
+            allowed_blocks_line = " ALLOWED BLOCKS (exact names): " + "; ".join(parts) + "."
+        # Sounds and icons from JSON (format per UI policy)
+        sound_names = [k.lower() for k in blocks_map.get("sounds", {}).keys()]
+        icon_names = []
+        for k in blocks_map.get("icons", {}).keys():
+            # Title Case for icons (e.g., HEART -> Heart)
+            icon_names.append(k.capitalize() if k.isupper() else k)
+        if sound_names:
+            allowed_sounds_line = " Only reference sounds from: " + ", ".join([f"\"{s}\"" for s in sound_names]) + ". "
+        if icon_names:
+            allowed_icons_line = "Only reference icons from: " + ", ".join([f"\"{i}\"" for i in icon_names]) + ". "
+    except Exception:
+        # Fallback: keep lines empty if file missing
+        pass
+    
     base_prompt = (
         "You are an enthusiastic, friendly micro:bit mentor for middle school students (ages 12-14). "
         "You help students learn programming concepts and debug their micro:bit code. "
         "Use encouraging, simple language that's easy to understand. "
         "Be excited about their projects and use emojis occasionally to keep things fun! "
         "Always reference specific parts of their code when giving advice. "
-        "Keep explanations short and clear - avoid overwhelming them with too much information at once. "
-        "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
+        "Keep explanations SHORT and clear - avoid overwhelming them with too much information at once. "
+        "RESPONSE LENGTH: Keep responses under 3 sentences. Be concise and direct. "
+        "BLOCK REFERENCES: Only mention MakeCode blocks that exist in the micro:bit library." + allowed_blocks_line + " "
+        "For sound detection, prefer event blocks like 'Hear Loud Sound' and 'Hear Quiet Sound' over input blocks like 'Sound Level'. "
+        "Do NOT mention API functions like 'input.onSound', 'basic.showIcon', 'music.playSound', or 'DetectedSound.Loud'. "
+        "CODE POLICY: You may include at most ONE short JavaScript example (<= 3 lines) that demonstrates a single block behavior only. Do NOT rewrite or include the student's whole program. Use ```javascript ...``` fencing. Keep the snippet minimal and focused. "
+        + allowed_sounds_line + allowed_icons_line +
+        "Use proper capitalization and quotes around sound/icon names. Do not use made-up words or slang. "
+        "FORMATTING: Use line breaks (\\n) between different ideas. Write in short, clear sentences. Never write one long paragraph."
     )
     
     if chat_type == "debug":
@@ -828,19 +877,10 @@ def get_chat_system_prompt(chat_type, js_code, context):
             "- Hardware connections (are their pins hooked up right?)\n"
             "- Radio communication between micro:bits\n\n"
             "Break it down into simple steps and ask them what they expected vs. what actually happened. "
+            "IMPORTANT: Do not provide code. Recommend specific blocks to add/check using exact names (e.g., 'Get A Message', 'Set Group', 'Show Icon'). "
+            "Suggest ADDING new blocks to their existing code, not replacing it. Use phrases like 'add a new block' or 'try adding'. "
+            "If you must show a single block example, use only sounds/icons from the approved list: \"twinkle\", \"ding\", \"chime\", etc. for sounds; \"Heart\", \"Happy\", \"Sad\", etc. for icons. "
             "Remind them that debugging is totally normal - even professional programmers do it! 🐛✨\n\n"
-            "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
-        )
-    
-    elif chat_type == "explain":
-        return base_prompt + (
-            "\n\nEXPLANATION MODE: The student wants to understand how their code works. "
-            "Break down their code into simple, understandable parts. Explain:\n"
-            "- What each section does\n"
-            "- How the different parts work together\n"
-            "- Why certain programming concepts are used\n"
-            "- How the micro:bit hardware interacts with the code\n\n"
-            "Use analogies when helpful. Make sure they understand the 'why' behind the code, not just the 'what'.\n\n"
             "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
         )
     
@@ -856,6 +896,9 @@ def get_chat_system_prompt(chat_type, js_code, context):
             "Get them excited about what they can build! Show them how to add to their existing code rather than starting over. "
             "Make suggestions that are fun and achievable for their skill level! 🚀\n\n"
             "EXAMPLE FORMAT: Start with enthusiasm, then ask what they want to add, then suggest specific ideas with line breaks between each idea.\n\n"
+            "IMPORTANT: Do not provide code. Recommend 1–3 exact block names they can try next. "
+            "Suggest ADDING new blocks to their existing code, not replacing it. Use phrases like 'add a new block' or 'try adding'. "
+            "If you must show a single block example, use only sounds/icons from the approved list: \"twinkle\", \"ding\", \"chime\", etc. for sounds; \"Heart\", \"Happy\", \"Sad\", etc. for icons.\n\n"
             "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
         )
     
@@ -870,6 +913,8 @@ def get_chat_system_prompt(chat_type, js_code, context):
             "- Examples of how it works with other blocks\n"
             "- Practical projects they could try\n\n"
             "Make it engaging and show them how this block fits into bigger programming concepts.\n\n"
+            "IMPORTANT: Do not provide code. Use examples phrased with exact block names only. "
+            "If you must show a single block example, use only sounds/icons from the approved list: \"twinkle\", \"ding\", \"chime\", etc. for sounds; \"Heart\", \"Happy\", \"Sad\", etc. for icons.\n\n"
             "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
         )
     
@@ -884,6 +929,8 @@ def get_chat_system_prompt(chat_type, js_code, context):
             "Get excited about their story ideas! Help them figure out how to make their code match their creative vision. "
             "Ask them about the cool story they're trying to tell! 🎭✨\n\n"
             "EXAMPLE FORMAT: Start by asking about their story, then explain what the code does now, then suggest how to change it, with line breaks between each part.\n\n"
+            "IMPORTANT: Do not provide code. Suggest specific blocks to add/remove using exact names. "
+            "If you must show a single block example, use only sounds/icons from the approved list: \"twinkle\", \"ding\", \"chime\", etc. for sounds; \"Heart\", \"Happy\", \"Sad\", etc. for icons.\n\n"
             "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
         )
     
@@ -896,12 +943,14 @@ def get_chat_system_prompt(chat_type, js_code, context):
             "- Problems they're having: Help them figure it out step by step\n"
             "- New ideas: Get excited and help them explore!\n\n"
             "Remember - learning to code is awesome but can be tricky sometimes. Be patient and celebrate their progress! 🎉\n\n"
+            "IMPORTANT: Do not provide code. Recommend blocks by exact names only. Keep it under 3 sentences. "
+            "If you must show a single block example, use only sounds/icons from the approved list: \"twinkle\", \"ding\", \"chime\", etc. for sounds; \"Heart\", \"Happy\", \"Sad\", etc. for icons.\n\n"
             "FORMATTING: Use line breaks (\\n) between different ideas or questions. Write in short, clear sentences. Never write one long paragraph."
         )
 
 
-def generate_chat_response(chat_type, user_message, js_code, context):
-    """Generate a chat response using LM Studio"""
+def generate_chat_response(chat_type, user_message, js_code, context, conversation_history=None):
+    """Generate a chat response using LM Studio with conversation history"""
     try:
         client = OpenAI(
             base_url=LM_STUDIO_BASE_URL,
@@ -919,10 +968,19 @@ def generate_chat_response(chat_type, user_message, js_code, context):
             if block_name:
                 context_info = f"\n\nCONTEXT: The student is asking about the '{block_name}' block from the {category} category. Block description: {description}"
         
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"}
-        ]
+        # Build conversation history
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history if provided (trim to last 6 turns to fit 4k models)
+        if conversation_history:
+            for msg in conversation_history[-6:]:
+                messages.append(msg)
+        
+        # Add current message
+        messages.append({
+            "role": "user", 
+            "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"
+        })
         
         response = client.chat.completions.create(
             model="meta-llama-3.1-8b-instruct",
@@ -1464,28 +1522,7 @@ def get_js_content():
         return str(e), 500
 
 
-@app.route("/generate_suggestions", methods=["POST"])
-def generate_suggestions():
-    """Generate AI suggestions for the current generated code"""
-    try:
-        # Read the current generated code from the file
-        with open("static/code_file.js", "r") as file:
-            js_code = file.read()
-        
-        # Generate AI suggestions using the code
-        suggestions = generate_ai_suggestions(js_code)
-        
-        return jsonify({
-            "success": True,
-            "suggestions": suggestions
-        })
-        
-    except Exception as e:
-        print(f"Error generating suggestions: {e}")
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+ 
 
 
 
@@ -1605,191 +1642,7 @@ def generate_encouragement_stream():
         }), 500
 
 
-@app.route("/generate_idea_stream", methods=["POST"])
-def generate_idea_stream():
-    """Generate idea with streaming for character-by-character display"""
-    try:
-        with open("static/code_file.js", "r") as file:
-            js_code = file.read()
-
-        def generate():
-            # Streaming cleaner state to remove parenthesized block labels as content arrives
-            buffer = ""
-
-            def flush_clean_text(text: str, final: bool = False):
-                """Remove parenthesized segments like (SHOW ICON) from text.
-
-                We keep an internal buffer to handle cases where '(' and ')' arrive
-                in separate chunks. Only emit content up to the last unmatched '(' unless final.
-                """
-                nonlocal buffer
-                buffer += text
-
-                # If not final, keep any trailing unmatched '(' and following text in buffer
-                emit_upto = len(buffer)
-                if not final:
-                    last_open = buffer.rfind("(")
-                    last_close = buffer.rfind(")")
-                    if last_open > last_close:
-                        emit_upto = last_open  # keep the open paren and tail for next chunk
-
-                to_emit = buffer[:emit_upto]
-                buffer = buffer[emit_upto:]
-
-                # Remove parenthesized labels and surrounding extra whitespace
-                import re
-                cleaned = re.sub(r"\s*\([^)]*\)\s*", " ", to_emit)
-                cleaned = re.sub(r"\s+", " ", cleaned)
-                return cleaned
-
-            try:
-
-                # Load cached block mappings (computed once at startup)
-                available_labels, trigger_labels, action_labels, blocks_info = get_cached_block_mappings()
-
-                client = OpenAI(
-                    base_url=LM_STUDIO_BASE_URL,
-                    api_key=LM_STUDIO_API_KEY
-                )
-
-                # Build a brief analysis summary to guide a code-specific extension
-                analysis = analyze_student_code(js_code)
-                def _list_or_na(items):
-                    return ", ".join(items) if items else "N/A"
-                analysis_summary = (
-                    "TRIGGERS: " + _list_or_na(analysis.get('triggers')) + "\n" +
-                    "ACTIONS: " + _list_or_na(analysis.get('actions')) + "\n" +
-                    "SENSORS: " + _list_or_na(analysis.get('sensors')) + "\n" +
-                    "PINS: " + _list_or_na(analysis.get('pins')) + "\n" +
-                    "LOGIC: " + _list_or_na(analysis.get('logic'))
-                )
-
-                # For streaming, ask for a small extension tied to existing code
-                simple_messages = [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are an enthusiastic micro:bit mentor for middle school students (ages 12-14). "
-                            "Generate a creative, question-based idea that is a SMALL EXTENSION to their existing code (not a new, unrelated project). "
-                            "Use their current triggers, sensors, displays, and pins where possible. "
-                            "Prefer modifying or adding one action to an existing trigger rather than replacing it. "
-                            "DO NOT start with 'Idea to Try:' or 'Try this:' - just start with the question directly. "
-                            "Include EXACTLY 2 block references in parentheses using EXACT labels from the available blocks list. "
-                            "CRITICAL: The sentence must read as proper English when the parenthesized block names are removed. "
-                            "Avoid dangling conjunctions or verbs. Always include the missing nouns so the sentence stays grammatical without parentheses. "
-                            "Use natural phrases like 'press button A' (not just 'press') and 'get a radio message' (not just 'get a message'). "
-                            "Your idea must reference at least one element that ALREADY EXISTS in their code (a trigger, sensor, pin, or display), and extend it incrementally. "
-                            "Only use triggers/actions that are relevant to their code. Do NOT suggest unrelated triggers like 'HEAR LOUD SOUND' unless their code uses sound. "
-                            "If their code uses a button inline (e.g., button B), prefer 'press button B' and ON BUTTON B. If their code uses a specific pin (e.g., P1), mention 'pin P1'. If it sends a radio string, mention 'a radio message'. "
-                            "Include EXACTLY ONE trigger (like ON BUTTON A, ON SHAKE, GET A MESSAGE, ON PIN PRESSED) AND ONE action (like SHOW ICON, PLAY SOUND, DIGITAL WRITE PIN, SEND STRING) in your idea. "
-                            "Use 'ON BUTTON A/B/AB' (not 'ON PRESS ...'). "
-                            "Do NOT include numbers, strings, or values in parentheses - only block names. "
-                            "Do NOT add technical explanations or code snippets after your idea. "
-                            "Do NOT mention 'input.buttonIsPressed' or 'basic.showString' or any API names. "
-                            "Focus on their actual code elements: buttons they use, sensors they read, displays they show, pins they use. "
-                            "MICRO:BIT HARDWARE CONTEXT: The micro:bit has 3 GPIO pins (P0, P1, P2) for connecting sensors, LEDs, motors, and other components. "
-                            "Pins can read digital values (0/1) or analog values (0-1023), and write digital (0/1) or analog (0-1023) signals. "
-                            "Radio allows wireless communication between micro:bits within ~10m range. "
-                            "Return ONLY the question with block names in parentheses. Nothing else. "
-                            "GOOD: 'What if you showed a happy face when you press button A (ON BUTTON A) and the light level is low (SHOW ICON)?' → removing parentheses stays grammatical. "
-                            "BAD: 'What if you showed an icon when you press and the value from pin P0 is less than 1000 (ON BUTTON A) (SHOW ICON)?' → 'press' must have an object like 'button A'."
-                        )
-                    },
-                    {
-                        "role": "user",
-                        "content": (
-                            f"{blocks_info}"
-                            "CURRENT CODE SUMMARY (use this to propose a SMALL extension that keeps existing context):\n" +
-                            analysis_summary +
-                            "\n\n"
-                            "STUDENT'S CODE:\n\n"
-                            f"```javascript\n{js_code}\n```\n\n"
-                            "Analyze this code and suggest ONE simple extension that builds on what they're already doing. "
-                            "Reference at least ONE element already in their code (e.g., 'button B', 'pin P1', 'a radio message'). "
-                            "Suggest adding ONE new action that works with their EXISTING trigger (or pairs naturally with it). "
-                            "Consider hardware possibilities: pins for sensors/actuators, radio for communication between micro:bits. "
-                            "Example format: 'What if you played a sound (PLAY SOUND) when you press (ON BUTTON A)?' "
-                            "Return ONLY the question with block names in parentheses. Do not add explanations."
-                        )
-                    }
-                ]
-
-                response = client.chat.completions.create(
-                    model="meta-llama-3.1-8b-instruct",
-                    messages=simple_messages,
-                    temperature=0.3,
-                    stream=True,
-                    max_tokens=200
-                )
-
-                # Stream the response character by character
-                full_text = ""
-                for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        full_text += content
-
-                        # Clean and emit safely (without parenthesized labels)
-                        cleaned_piece = flush_clean_text(content, final=False)
-                        if cleaned_piece:
-                            for char in cleaned_piece:
-                                if char == ' ':
-                                    yield f"data: {json.dumps({'word': ' '})}\n\n"
-                                elif char not in ['\n', '\r', '\t']:
-                                    yield f"data: {json.dumps({'word': char})}\n\n"
-                                import time
-                                time.sleep(0.025)  # Optimized delay for smooth animation
-
-                # Clean up the final text and cache it
-                if full_text:
-                    # Flush remaining buffer and finalize cleaned text
-                    final_clean = flush_clean_text("", final=True)
-                    import re
-                    idea_text_raw = full_text.replace("Idea to Try: ", "").replace("Try this: ", "").strip()
-                    idea_text = re.sub(r'\s+', ' ', (final_clean or idea_text_raw)).strip()
-
-                    # Extract blocks from the RAW (un-cleaned) idea so labels are preserved for the UI section
-                    extracted_blocks = extract_blocks_from_idea(idea_text_raw, available_labels)
-                    # Validate novelty + anchoring and fallback if needed
-                    # We need trigger labels for validation
-                    _, trigger_labels, _, _ = get_cached_block_mappings()
-                    used_blocks, anchors = compute_used_blocks_and_anchors(analysis)
-                    adj_blocks = adjacent_novel_blocks(used_blocks)
-                    is_valid, score, reason = score_and_validate_idea(idea_text_raw, extracted_blocks, used_blocks, anchors, adj_blocks, trigger_labels)
-                    print(f"DEBUG: Stream idea validation -> valid={is_valid}, score={score}, reason='{reason}'")
-                    if not is_valid:
-                        fallback = deterministic_novel_idea(analysis, used_blocks, anchors)
-                        # Overwrite with fallback
-                        idea_text = re.sub(r'\s+', ' ', fallback["idea"]).strip()
-                        extracted_blocks = fallback["blocks"]
-                    if extracted_blocks:
-                        # Send a dedicated SSE event with blocks so the UI can populate "Blocks to Explore"
-                        yield f"data: {json.dumps({'blocks': extracted_blocks})}\n\n"
-
-
-                yield f"data: {json.dumps({'done': True})}\n\n"
-
-            except Exception as e:
-                print(f"Error in streaming idea: {e}")
-                # Fallback to non-streaming
-                fallback_idea = "What if you added some sound effects when you press a button?"
-                for char in fallback_idea:
-                    if char == ' ':
-                        yield f"data: {json.dumps({'word': ' '})}\n\n"
-                    elif char not in ['\n', '\r', '\t']:
-                        yield f"data: {json.dumps({'word': char})}\n\n"
-                    import time
-                    time.sleep(0.025)  # Optimized delay for smooth animation
-                yield f"data: {json.dumps({'done': True})}\n\n"
-
-        return app.response_class(generate(), mimetype='text/event-stream')
-
-    except Exception as e:
-        print(f"Error generating streaming idea: {e}")
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+ 
 
 
 @app.route("/chat", methods=["POST"])
@@ -1803,6 +1656,7 @@ def chat():
         chat_type = data.get("type", "general")
         user_message = data.get("message", "")
         context = data.get("context", {})
+        conversation_history = data.get("conversation_history", [])
         
         # Get the current generated code
         try:
@@ -1812,7 +1666,7 @@ def chat():
             js_code = "// No code generated yet"
         
         # Generate appropriate response based on chat type
-        response = generate_chat_response(chat_type, user_message, js_code, context)
+        response = generate_chat_response(chat_type, user_message, js_code, context, conversation_history)
         
         return jsonify({
             "success": True,
@@ -1838,6 +1692,7 @@ def chat_stream():
         chat_type = data.get("type", "general")
         user_message = data.get("message", "")
         context = data.get("context", {})
+        conversation_history = data.get("conversation_history", [])
         
         # Get the current generated code
         try:
@@ -1865,10 +1720,19 @@ def chat_stream():
                     if block_name:
                         context_info = f"\n\nCONTEXT: The student is asking about the '{block_name}' block from the {category} category. Block description: {description}"
                 
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"}
-                ]
+                # Build conversation history
+                messages = [{"role": "system", "content": system_prompt}]
+                
+                # Add conversation history if provided (trim to last 6 turns to fit 4k models)
+                if conversation_history:
+                    for msg in conversation_history[-6:]:
+                        messages.append(msg)
+                
+                # Add current message
+                messages.append({
+                    "role": "user", 
+                    "content": f"STUDENT'S CODE:\n```javascript\n{js_code}\n```{context_info}\n\nSTUDENT'S QUESTION: {user_message}"
+                })
                 
                 response = client.chat.completions.create(
                     model="meta-llama-3.1-8b-instruct",

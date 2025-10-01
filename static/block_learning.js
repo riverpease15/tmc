@@ -49,16 +49,16 @@ class BlockLearningSystem {
     getCategoryDisplayName(category) {
         const displayNames = {
             'basic': 'Basic',
-            'input': 'Sensors',
+            'input': 'Sensor',
             'music': 'Music',
-            'events': 'Events',
+            'events': 'Event',
             'logic': 'Logic',
-            'loops': 'Loops',
+            'loops': 'Loop',
             'math': 'Math',
-            'led': 'LEDs',
+            'led': 'LED',
             'control': 'Control',
-            'variables': 'Variables',
-            'pins': 'Pins',
+            'variables': 'Variable',
+            'pins': 'Pin',
             'radio': 'Radio'
         };
         return displayNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
@@ -103,17 +103,17 @@ class BlockLearningSystem {
     }
 
     showInitialOptions() {
-        let message = "Awesome! Let's learn about micro:bit blocks! 🎯\n\n";
+        let message = "Awesome! 💪\n\n";
         message += "Do you want to learn about a specific block you have in mind, or would you like to explore all the different categories of blocks?\n\n";
         
         const buttons = [
             { 
-                text: "Learn About a Specific Block", 
+                text: "Learn about a specific block", 
                 value: "specific_block", 
                 action: () => this.requestSpecificBlock() 
             },
             { 
-                text: "See All Block Categories", 
+                text: "See all block categories", 
                 value: "all_categories", 
                 action: () => this.showCategorySelection() 
             }
@@ -176,9 +176,9 @@ class BlockLearningSystem {
             message += `Would you like to learn more about this block or explore other blocks?`;
             
             const buttons = [
-                { text: "Learn More (AI Help)", value: "learn_more", action: () => this.requestMoreHelp() },
-                { text: "Try Another Block", value: "another_block", action: () => this.requestSpecificBlock() },
-                { text: "See All Categories", value: "all_categories", action: () => this.showCategorySelection() }
+                { text: "Learn more (AI help)", value: "learn_more", action: () => this.requestMoreHelp() },
+                { text: "Try another block", value: "another_block", action: () => this.requestSpecificBlock() },
+                { text: "See all categories", value: "all_categories", action: () => this.showCategorySelection() }
             ];
             
             return {
@@ -194,8 +194,8 @@ class BlockLearningSystem {
             message += `What would you like to do?`;
             
             const buttons = [
-                { text: "Try Another Block Name", value: "try_again", action: () => this.requestSpecificBlock() },
-                { text: "See All Categories", value: "all_categories", action: () => this.showCategorySelection() }
+                { text: "Try another block name", value: "try_again", action: () => this.requestSpecificBlock() },
+                { text: "See all categories", value: "all_categories", action: () => this.showCategorySelection() }
             ];
             
             return {
@@ -251,9 +251,9 @@ class BlockLearningSystem {
         message += `Would you like to learn more about this block or explore other blocks?`;
         
         const buttons = [
-            { text: "Learn More (AI Help)", value: "learn_more", action: () => this.requestMoreHelp() },
-            { text: "Try Another Block", value: "another_block", action: () => this.showBlockSelection() },
-            { text: "Different Category", value: "different_category", action: () => this.showCategorySelection() }
+            { text: "Learn more (AI help)", value: "learn_more", action: () => this.requestMoreHelp() },
+            { text: "Try another block", value: "another_block", action: () => this.showBlockSelection() },
+            { text: "Different category", value: "different_category", action: () => this.showCategorySelection() }
         ];
         
         return {
@@ -263,16 +263,16 @@ class BlockLearningSystem {
     }
 
     requestMoreHelp() {
+        // First message: connecting notice. Chat transfer will be scheduled
+        // by the renderer after streaming finishes.
         return {
             message: "Great choice! I'll connect you with our AI assistant to get more detailed help with this block. The AI can provide examples, troubleshooting tips, and advanced usage ideas! 🤖",
-            buttons: [
-                { text: "Continue to AI Chat", value: "ai_chat", action: () => this.transferToAI() },
-                { text: "Back to Block Info", value: "back", action: () => this.showBlockDescription() }
-            ]
+            buttons: [],
+            autoTransferToAI: true
         };
     }
 
-    transferToAI() {
+    transferToAI(initialGreeting = false) {
         // Start a chat conversation with block learning context
         const context = {
             block: this.selectedBlock,
@@ -282,7 +282,10 @@ class BlockLearningSystem {
         
         // Use the chat system with learn_block type
         if (typeof startChatConversation === 'function') {
-            startChatConversation('learn_block', `Awesome! Let's dive into the **${this.selectedBlock}** block! 🤓 This is a ${this.getCategoryDisplayName(this.selectedCategory)} block that ${context.description || 'helps you create super cool interactive projects'}. What would you like to know about it? Maybe how to use it, what it does, or how to combine it with other blocks?`, context);
+            const initialMessage = initialGreeting
+                ? 'Hi! What else would you like to know? 🤔'
+                : `Awesome! Let's dive into the **${this.selectedBlock}** block! 🤓 This is a ${this.getCategoryDisplayName(this.selectedCategory)} block that ${context.description || 'helps you create super cool interactive projects'}. What would you like to know about it? Maybe how to use it, what it does, or how to combine it with other blocks?`;
+            startChatConversation('learn_block', initialMessage, context);
         }
         
         return null; // Don't return a message since we're transferring to chat
@@ -370,12 +373,21 @@ function displayBlockLearningResponse(result, isCategoryStep = false) {
     // Stream the content with typing animation
     streamContent(bubble, result.message);
     
+    // Compute delay based on text length to ensure streaming completes
+    const textLength = result.message.length;
+    const streamingDelay = Math.max(2000, textLength * 25); // At least 2 seconds, or 25ms per character
+
+    // Auto-transfer to AI after streaming if requested
+    if (result.autoTransferToAI) {
+        setTimeout(() => {
+            if (typeof window.blockLearningSystem?.transferToAI === 'function') {
+                window.blockLearningSystem.transferToAI(true);
+            }
+        }, streamingDelay);
+    }
+
     // Add buttons if they exist (as user-style options) - delay to show after streaming
     if (result.buttons && result.buttons.length > 0) {
-        // Calculate delay based on text length to ensure streaming completes
-        const textLength = result.message.length;
-        const streamingDelay = Math.max(2000, textLength * 25); // At least 2 seconds, or 25ms per character
-        
         setTimeout(() => {
             const userMessage = document.createElement('div');
             userMessage.className = 'chat-msg user';
